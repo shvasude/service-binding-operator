@@ -409,7 +409,7 @@ consistent-crds-manifests-upstream:
 merge-to-master-release: 
 	echo "${QUAY_TOKEN}" | docker login -u "redhat-developer+travis" --password-stdin quay.io
 	$(eval COMMIT_COUNT := $(shell git rev-list --count HEAD))
-	$(Q)operator-sdk build \
+	$(Q)docker build \
 	"$(OPERATOR_IMAGE)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
 	docker login -u="redhat-developer+travis" -p=${QUAY_TOKEN}
  	docker tag "$(OPERATOR_IMAGE)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)" "$(OPERATOR_IMAGE):latest"
