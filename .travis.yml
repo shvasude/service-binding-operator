@@ -10,6 +10,10 @@ env:
   global:
     - GO111MODULE=on
 
+before_install:
+# Install deps
+- sudo apt -y install podman
+
 script:
 # Run merge-to-master-release
 - if [ "$TRAVIS_BRANCH" = "testing-quay" ]; then
