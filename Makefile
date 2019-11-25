@@ -116,6 +116,7 @@ GIT_COMMIT_ID = $(shell git rev-parse --short HEAD)
 OPERATOR_VERSION ?= 0.0.20
 OPERATOR_GROUP ?= ${GO_PACKAGE_ORG_NAME}
 OPERATOR_IMAGE ?= quay.io/${OPERATOR_GROUP}/${GO_PACKAGE_REPO_NAME}
+OPERATOR_IMAGE_REL ?= quay.io/${OPERATOR_GROUP}/app-binding-operator
 OPERATOR_TAG_SHORT ?= $(OPERATOR_VERSION)
 OPERATOR_TAG_LONG ?= $(OPERATOR_VERSION)-$(GIT_COMMIT_ID)
 OPERATOR_IMAGE_BUILDER ?= buildah
@@ -410,8 +411,7 @@ merge-to-master-release:
 	echo "${QUAY_TOKEN}" | docker login -u "redhat-developer+travis" --password-stdin quay.io
 	$(eval COMMIT_COUNT := $(shell git rev-list --count HEAD))
 	$(Q)operator-sdk build \
-	"$(OPERATOR_IMAGE)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
+	"$(OPERATOR_IMAGE_REL)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
 	#docker login -u="redhat-developer+travis" -p=${QUAY_TOKEN}
- 	docker tag "$(OPERATOR_IMAGE)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)" "$(OPERATOR_IMAGE):latest"
-	-docker push "$(OPERATOR_IMAGE)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
-	-docker push "$(OPERATOR_IMAGE):latest"
+ 	#docker tag "$(OPERATOR_IMAGE_REL)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)" "$(OPERATOR_IMAGE)"
+	docker push "$(OPERATOR_IMAGE_REL)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
