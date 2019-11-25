@@ -411,8 +411,9 @@ merge-to-master-release:
 	echo "${QUAY_TOKEN}" | docker login -u "redhat-developer+travis" --password-stdin quay.io
 	$(eval COMMIT_COUNT := $(shell git rev-list --count HEAD))
 	$(Q)operator-sdk build \
-	"$(OPERATOR_IMAGE_REL):$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
+	"$(OPERATOR_IMAGE_REL):$(GIT_COMMIT_ID)"
 	#docker login -u="redhat-developer+travis" -p=${QUAY_TOKEN}
-	docker tag "$(OPERATOR_IMAGE_REL):$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)" \
-	"$(OPERATOR_IMAGE_REL):$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
-	docker push "$(OPERATOR_IMAGE_REL):$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
+	docker tag "$(OPERATOR_IMAGE_REL):$(GIT_COMMIT_ID)" \
+	"$(OPERATOR_IMAGE_REL):$(GIT_COMMIT_ID)"
+	docker push "$(OPERATOR_IMAGE_REL):$(GIT_COMMIT_ID)"
+
