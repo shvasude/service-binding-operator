@@ -411,7 +411,7 @@ merge-to-master-release:
 	$(eval COMMIT_COUNT := $(shell git rev-list --count HEAD))
 	$(Q)docker build \
 	"$(OPERATOR_IMAGE)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
-	docker login -u="redhat-developer+travis" -p=${QUAY_TOKEN}
+	#docker login -u="redhat-developer+travis" -p=${QUAY_TOKEN}
  	docker tag "$(OPERATOR_IMAGE)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)" "$(OPERATOR_IMAGE):latest"
 	-docker push "$(OPERATOR_IMAGE)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
 	-docker push "$(OPERATOR_IMAGE):latest"
