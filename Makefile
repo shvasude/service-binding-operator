@@ -413,5 +413,6 @@ merge-to-master-release:
 	$(Q)operator-sdk build \
 	"$(OPERATOR_IMAGE_REL)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
 	#docker login -u="redhat-developer+travis" -p=${QUAY_TOKEN}
-	docker tag "$(OPERATOR_IMAGE_REL)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)" "$(OPERATOR_IMAGE_REL)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
+	docker tag "$(OPERATOR_IMAGE_REL)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)" \
+	"$(OPERATOR_IMAGE_REL)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
 	docker push "$(OPERATOR_IMAGE_REL)-$(COMMIT_COUNT)-$(OPERATOR_TAG_LONG)"
