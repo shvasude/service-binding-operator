@@ -33,10 +33,10 @@ after_success:
 - MESSAGE=$(git log --format=%B -n 1 $TRAVIS_COMMIT)
 - git clone git://${GH_REPO}
 - git clone git://${GH_REMOTE_REPO}
-- cd ${GH_REPO}
+- cd service-binding-operator
 - git checkout testing-quay
 - cp ${FILES} ${GH_REMOTE_REPO}/
-- cd ${GH_REMOTE_REPO}
+- cd service-binding-operator-manifests
 - git config user.email ${EMAIL}
 - git config user.name ${USER}
 - git add ${FILES}
