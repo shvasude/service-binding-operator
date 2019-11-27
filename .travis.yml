@@ -30,7 +30,7 @@ script:
 
 
 after_success:
-- MESSAGE=$(git log --format=%B -n 1 $TRAVIS_COMMIT)
+- MESSAGE=($TRAVIS_COMMIT)
 - git clone git://${GH_REMOTE_REPO}
 - cp -r ${FILES} ./service-binding-operator-manifests
 - cd service-binding-operator-manifests
