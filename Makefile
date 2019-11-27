@@ -433,3 +433,10 @@ push-to-manifest-repo:
 	sed -i -e 's,REPLACE_IMAGE,$(OPERATOR_IMAGE_REL)-$(GIT_COMMIT_ID),g' $(MANIFESTS_TMP)/${BUNDLE_VERSION}/*.clusterserviceversion.yaml
 	sed -i -e 's,BUNDLE_VERSION,$(BUNDLE_VERSION),g' $(MANIFESTS_TMP)/*.yaml 
 	rm -rf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)
+
+## -- Target for pushing manifest bundle to service-binding-operator-manifest repo --
+.PHONY: push-bundle-to-quay
+## Push manifest bundle to service-binding-operator-manifest repo
+push-bundle-to-quay:
+	$(Q)venv3/bin/operator-courier --verbose verify $(MANIFESTS_TMP)
+	$(Q)venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
