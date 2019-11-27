@@ -15,6 +15,7 @@ env:
     - REPO="service-binding-operator"
     - FILES="./tmp/manifests"
     - GH_REPO="github.com/${USER}/${REPO}.git"
+    - GH_REMOTE_REPO="github.com/${USER}/service-binding-operator-manifests"
 
 before_install:
 # Download Operator SDK
@@ -31,11 +32,10 @@ script:
 after_success:
 - MESSAGE=$(git log --format=%B -n 1 $TRAVIS_COMMIT)
 - git clone git://${GH_REPO}
-- mv -f ${FILES} ${REPO}
 - cd ${REPO}
 - git checkout master
 - git config user.email ${EMAIL}
 - git config user.name ${USER}
 - git add ${FILES}
 - git commit -m ${MESSAGE}
-- git push "https://${GITHUB_TOKEN}@${GH_REPO}" master > /dev/null 2>&1
+- git push "https://${GITHUB_TOKEN}@${GH_REMOTE_REPO}" master > /dev/null 2>&1
