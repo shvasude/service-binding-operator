@@ -20,7 +20,7 @@ env:
 before_install:
 # Install deps
 - sudo apt-get install python3
-- python -m pip install --user virtualenv
+- python3 -m venv /venv3
 - /venv3/bin/pip install operator-courier
 
 # Download Operator SDK
