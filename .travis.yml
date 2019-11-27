@@ -13,7 +13,7 @@ env:
     - USER="redhat-developer"
     - EMAIL="openshift-dev-services@redhat.com"
     - REPO="service-binding-operator"
-    - FILES="./tmp/manifests"
+    - FILES="./tmp/manifests/*"
     - GH_REPO="github.com/${USER}/${REPO}.git"
     - GH_REMOTE_REPO="github.com/${USER}/service-binding-operator-manifests"
 
