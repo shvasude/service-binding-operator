@@ -31,14 +31,11 @@ script:
 
 after_success:
 - MESSAGE=$(git log --format=%B -n 1 $TRAVIS_COMMIT)
-- git clone git://${GH_REPO}
 - git clone git://${GH_REMOTE_REPO}
-- cd service-binding-operator
-- git checkout testing-quay
-- cp ${FILES} ${GH_REMOTE_REPO}/
+- cp -r ${FILES} ./service-binding-operator-manifests
 - cd service-binding-operator-manifests
 - git config user.email ${EMAIL}
 - git config user.name ${USER}
-- git add ${FILES}
+- git add .
 - git commit -m ${MESSAGE}
 - git push "https://${GITHUB_TOKEN}@${GH_REMOTE_REPO}" master > /dev/null 2>&1
