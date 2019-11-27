@@ -407,7 +407,7 @@ consistent-crds-manifests-upstream:
 ## -- Target for merge to master dev release --
 .PHONY: merge-to-master-release
 ## Make a dev release on every merge to master
-merge-to-master-release: 
+merge-to-master-release:
 	echo "${QUAY_TOKEN}" | docker login -u "redhat-developer+travis" --password-stdin quay.io
 	$(eval COMMIT_COUNT := $(shell git rev-list --count HEAD))
 	$(Q)operator-sdk build \
@@ -417,3 +417,19 @@ merge-to-master-release:
 	"$(OPERATOR_IMAGE_REL):$(GIT_COMMIT_ID)"
 	docker push "$(OPERATOR_IMAGE_REL):$(GIT_COMMIT_ID)"
 
+
+## -- Target for pushing manifest bundle to service-binding-operator-manifest repo --
+.PHONY: push-to-manifest-repo
+## Push manifest bundle to service-binding-operator-manifest repo
+push-to-manifest-repo:
+	$(eval COMMIT_COUNT := $(shell git rev-list --count HEAD))
+	@rm -rf $(MANIFESTS_TMP) || true
+	@mkdir -p ${MANIFESTS_TMP}
+	$(eval BUNDLE_VERSION := $(OPERATOR_VERSION)-$(COMMIT_COUNT))
+	operator-sdk olm-catalog gen-csv --csv-version $(BUNDLE_VERSION) 
+	cp -vrf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)/ $(MANIFESTS_TMP)/$(BUNDLE_VERSION)/
+	cp -vrf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/*package.yaml $(MANIFESTS_TMP)/	
+	cp -vrf deploy/crds/*_crd.yaml $(MANIFESTS_TMP)/${BUNDLE_VERSION}/
+	sed -i -e 's,REPLACE_IMAGE,$(OPERATOR_IMAGE_REL)-$(GIT_COMMIT_ID),g' $(MANIFESTS_TMP)/${BUNDLE_VERSION}/*.clusterserviceversion.yaml
+	sed -i -e 's,BUNDLE_VERSION,$(BUNDLE_VERSION),g' $(MANIFESTS_TMP)/*.yaml 
+	rm -rf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)
