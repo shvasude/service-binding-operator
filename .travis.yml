@@ -23,7 +23,9 @@ before_install:
 script:
 # Run merge-to-master-release
 - if [ "$TRAVIS_BRANCH" = "testing-quay" ]; then
-  make merge-to-master-release; fi
+  make merge-to-master-release;
+  make push-to-manifest-repo; 
+  fi
 
 
 after_success:
