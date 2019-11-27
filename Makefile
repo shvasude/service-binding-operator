@@ -437,6 +437,7 @@ push-to-manifest-repo:
 ## -- Target for pushing manifest bundle to service-binding-operator-manifest repo --
 .PHONY: push-bundle-to-quay
 ## Push manifest bundle to service-binding-operator-manifest repo
-push-bundle-to-quay:
-	$(Q)venv3/bin/operator-courier --verbose verify $(MANIFESTS_TMP)
-	$(Q)venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
+push-bundle-to-quay: setup-venv
+	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
+	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier --verbose verify $(MANIFESTS_TMP)
+	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
