@@ -172,6 +172,11 @@ courier:
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier flatten ./manifests $(OUTPUT_DIR)/manifests
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(OUTPUT_DIR)/manifests
 
+.PHONY: create-output-dir
+## create OUTPUT-DIR
+create-output-dir:
+	@mkdir -p $(OUTPUT_DIR)
+
 .PHONY: setup-venv
 ## Setup virtual environment
 setup-venv:
