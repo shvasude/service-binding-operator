@@ -435,16 +435,16 @@ push-to-manifest-repo:
 	cp -vrf deploy/crds/*_crd.yaml $(MANIFESTS_TMP)/${BUNDLE_VERSION}/
 	sed -i -e 's,REPLACE_IMAGE,$(OPERATOR_IMAGE_REL)-$(GIT_COMMIT_ID),g' $(MANIFESTS_TMP)/${BUNDLE_VERSION}/*.clusterserviceversion.yaml
 	sed -i -e 's,BUNDLE_VERSION,$(BUNDLE_VERSION),g' $(MANIFESTS_TMP)/*.yaml 
-	ls $(MANIFESTS_TMP)
-	ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION)
+	$(shell ls $(MANIFESTS_TMP))
+	$(shell ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION))
 
 
 ## -- Target for pushing manifest bundle to service-binding-operator-manifest repo --
 .PHONY: push-bundle-to-quay
 ## Push manifest bundle to service-binding-operator-manifest repo
 push-bundle-to-quay: setup-venv
-	ls $(MANIFESTS_TMP)
-	ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION)
+	$(shell ls $(MANIFESTS_TMP))
+	$(shell ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION))
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
