@@ -6,6 +6,9 @@ language: go
 go:
 - 1.13.x
 
+git:
+  depth: false
+
 env:
   global:
     - SDK_VERSION="0.8.1"
