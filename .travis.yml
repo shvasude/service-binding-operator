@@ -20,9 +20,8 @@ env:
 before_install:
 # Install deps
 - sudo apt-get install python3-venv
-- sudo python3 -m venv ./venv3
-- sudo apt install python3-pip
-#- sudo ./venv3/bin/pip install operator-courier
+- python3 -m venv ./venv3
+- ./venv3/bin/pip install operator-courier
 
 # Download Operator SDK
 - curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v${SDK_VERSION}/operator-sdk-v${SDK_VERSION}-x86_64-linux-gnu && chmod +x operator-sdk && mv operator-sdk $GOPATH/bin/

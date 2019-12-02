@@ -426,19 +426,22 @@ push-to-manifest-repo:
 	@rm -rf $(MANIFESTS_TMP) || true
 	@mkdir -p ${MANIFESTS_TMP}
 	$(eval BUNDLE_VERSION := $(OPERATOR_VERSION)-$(COMMIT_COUNT))
-	operator-sdk olm-catalog gen-csv --csv-version $(BUNDLE_VERSION) 
+	operator-sdk olm-catalog gen-csv --csv-version $(BUNDLE_VERSION)
+	go build -ldflags "-X main.BundleVersion=$(BUNDLE_VERSION)" ./hack/add-info-to-csv.go 
+	./add-info-to-csv
 	cp -vrf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)/ $(MANIFESTS_TMP)/$(BUNDLE_VERSION)/
 	cp -vrf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/*package.yaml $(MANIFESTS_TMP)/	
 	cp -vrf deploy/crds/*_crd.yaml $(MANIFESTS_TMP)/${BUNDLE_VERSION}/
 	sed -i -e 's,REPLACE_IMAGE,$(OPERATOR_IMAGE_REL)-$(GIT_COMMIT_ID),g' $(MANIFESTS_TMP)/${BUNDLE_VERSION}/*.clusterserviceversion.yaml
 	sed -i -e 's,BUNDLE_VERSION,$(BUNDLE_VERSION),g' $(MANIFESTS_TMP)/*.yaml 
-	rm -rf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)
+
 
 ## -- Target for pushing manifest bundle to service-binding-operator-manifest repo --
 .PHONY: push-bundle-to-quay
 ## Push manifest bundle to service-binding-operator-manifest repo
 push-bundle-to-quay: setup-venv
-	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier==2.1.7
+	# $(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier nest $(MANIFESTS_TMP) $(OUTPUT_DIR)/manifests
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(OUTPUT_DIR)/manifests
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
+	rm -rf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)
