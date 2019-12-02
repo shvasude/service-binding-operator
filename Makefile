@@ -437,6 +437,7 @@ push-to-manifest-repo:
 	sed -i -e 's,BUNDLE_VERSION,$(BUNDLE_VERSION),g' $(MANIFESTS_TMP)/*.yaml 
 	$(shell ls $(MANIFESTS_TMP))
 	$(shell ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION))
+	$(shell cd $(MANIFESTS_TMP) && ls)
 
 
 ## -- Target for pushing manifest bundle to service-binding-operator-manifest repo --
@@ -445,6 +446,8 @@ push-to-manifest-repo:
 push-bundle-to-quay: setup-venv
 	$(shell ls $(MANIFESTS_TMP))
 	$(shell ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION))
+	$(shell cd $(MANIFESTS_TMP) && ls)
+	$(shell cat $(MANIFESTS_TMP)/service*)
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
