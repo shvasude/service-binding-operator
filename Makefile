@@ -172,10 +172,6 @@ courier:
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier flatten ./manifests $(OUTPUT_DIR)/manifests
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(OUTPUT_DIR)/manifests
 
-.PHONY: create-output-dir
-## create OUTPUT-DIR
-create-output-dir:
-	@mkdir -p $(OUTPUT_DIR)
 
 .PHONY: setup-venv
 ## Setup virtual environment
@@ -446,6 +442,6 @@ push-to-manifest-repo:
 ## Push manifest bundle to service-binding-operator-manifest repo
 push-bundle-to-quay: setup-venv
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
-	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(OUTPUT_DIR)/manifests
+	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)/manifests
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
 	rm -rf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)
