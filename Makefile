@@ -435,9 +435,9 @@ push-to-manifest-repo:
 	cp -vrf deploy/crds/*_crd.yaml $(MANIFESTS_TMP)/${BUNDLE_VERSION}/
 	sed -i -e 's,REPLACE_IMAGE,$(OPERATOR_IMAGE_REL)-$(GIT_COMMIT_ID),g' $(MANIFESTS_TMP)/${BUNDLE_VERSION}/*.clusterserviceversion.yaml
 	sed -i -e 's,BUNDLE_VERSION,$(BUNDLE_VERSION),g' $(MANIFESTS_TMP)/*.yaml 
-	$(eval FILES1 := shell ls $(MANIFESTS_TMP))
+	FILES1 := $(shell ls $(MANIFESTS_TMP))
 	echo $(FILES1)
-	$(eval FILES2 := shell ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION))
+	FILES2 := $(shell ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION))
 	echo $(FILES2)
 
 
@@ -447,10 +447,10 @@ push-to-manifest-repo:
 ## Push manifest bundle to service-binding-operator-manifest repo
 push-bundle-to-quay: setup-venv
 	$(shell ls $(MANIFESTS_TMP))	
-	$(eval FILES := $(shell ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION)))
+	FILES := $(shell ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION))
 	echo $(FILES)
 	$(shell cd $(MANIFESTS_TMP) && ls)
-	$(eval PACKAGE_OUTPUT := $(shell cat $(MANIFESTS_TMP)/service*))
+	PACKAGE_OUTPUT := $(shell cat $(MANIFESTS_TMP)/service*)
 	echo $(PACKAGE_OUTPUT)
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
