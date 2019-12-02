@@ -121,6 +121,9 @@ OPERATOR_TAG_SHORT ?= $(OPERATOR_VERSION)
 OPERATOR_TAG_LONG ?= $(OPERATOR_VERSION)-$(GIT_COMMIT_ID)
 OPERATOR_IMAGE_BUILDER ?= buildah
 OPERATOR_SDK_EXTRA_ARGS ?= "--debug"
+COMMIT_COUNT := $(shell git rev-list --count HEAD)
+BUNDLE_VERSION := $(OPERATOR_VERSION)-$(COMMIT_COUNT)
+
 
 QUAY_TOKEN ?= ""
 
@@ -423,10 +426,10 @@ merge-to-master-release:
 .PHONY: push-to-manifest-repo
 ## Push manifest bundle to service-binding-operator-manifest repo
 push-to-manifest-repo:
-	$(eval COMMIT_COUNT := $(shell git rev-list --count HEAD))
+	
 	@rm -rf $(MANIFESTS_TMP) || true
 	@mkdir -p ${MANIFESTS_TMP}
-	$(eval BUNDLE_VERSION := $(OPERATOR_VERSION)-$(COMMIT_COUNT))
+
 	operator-sdk olm-catalog gen-csv --csv-version $(BUNDLE_VERSION)
 	go build -ldflags "-X main.BundleVersion=$(BUNDLE_VERSION)" ./hack/add-info-to-csv.go 
 	./add-info-to-csv
@@ -435,23 +438,12 @@ push-to-manifest-repo:
 	cp -vrf deploy/crds/*_crd.yaml $(MANIFESTS_TMP)/${BUNDLE_VERSION}/
 	sed -i -e 's,REPLACE_IMAGE,$(OPERATOR_IMAGE_REL)-$(GIT_COMMIT_ID),g' $(MANIFESTS_TMP)/${BUNDLE_VERSION}/*.clusterserviceversion.yaml
 	sed -i -e 's,BUNDLE_VERSION,$(BUNDLE_VERSION),g' $(MANIFESTS_TMP)/*.yaml 
-	FILES1 := $(shell ls $(MANIFESTS_TMP))
-	echo $(FILES1)
-	FILES2 := $(shell ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION))
-	echo $(FILES2)
-
 
 
 ## -- Target for pushing manifest bundle to service-binding-operator-manifest repo --
 .PHONY: push-bundle-to-quay
 ## Push manifest bundle to service-binding-operator-manifest repo
 push-bundle-to-quay: setup-venv
-	$(shell ls $(MANIFESTS_TMP))	
-	FILES := $(shell ls $(MANIFESTS_TMP)/$(BUNDLE_VERSION))
-	echo $(FILES)
-	$(shell cd $(MANIFESTS_TMP) && ls)
-	PACKAGE_OUTPUT := $(shell cat $(MANIFESTS_TMP)/service*)
-	echo $(PACKAGE_OUTPUT)
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
