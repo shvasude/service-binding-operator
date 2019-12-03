@@ -128,7 +128,7 @@ BUNDLE_VERSION := $(OPERATOR_VERSION)-$(COMMIT_COUNT)
 QUAY_TOKEN ?= ""
 
 MANIFESTS_DIR ?= ./manifests
-MANIFESTS_TMP ?= ./tmp/manifests
+MANIFESTS_TMP ?= ./test-quay2/manifests
 HACK_DIR ?= ./hack
 OUTPUT_DIR ?= ./out
 LOGS_DIR ?= $(OUTPUT_DIR)/logs
