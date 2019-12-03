@@ -433,7 +433,7 @@ push-to-manifest-repo:
 	operator-sdk olm-catalog gen-csv --csv-version $(BUNDLE_VERSION)
 	go build -ldflags "-X main.BundleVersion=$(BUNDLE_VERSION)" ./hack/add-info-to-csv.go 
 	./add-info-to-csv
-	cp -vrf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)/ $(MANIFESTS_TMP)/$(BUNDLE_VERSION)/
+	cp -vrf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)/* $(MANIFESTS_TMP)/$(BUNDLE_VERSION)/
 	cp -vrf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/*package.yaml $(MANIFESTS_TMP)/	
 	cp -vrf deploy/crds/*_crd.yaml $(MANIFESTS_TMP)/${BUNDLE_VERSION}/
 	sed -i -e 's,REPLACE_IMAGE,$(OPERATOR_IMAGE_REL)-$(GIT_COMMIT_ID),g' $(MANIFESTS_TMP)/${BUNDLE_VERSION}/*.clusterserviceversion.yaml
