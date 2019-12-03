@@ -101,11 +101,11 @@ GO_PACKAGE_PATH ?= github.com/${GO_PACKAGE_ORG_NAME}/${GO_PACKAGE_REPO_NAME}
 
 CGO_ENABLED ?= 0
 GO111MODULE ?= on
-GOCACHE ?= "$(shell echo ${PWD})/out/gocache"
+GOCACHE ?= $(shell echo ${PWD})/out/gocache
 
 # This variable is for artifacts to be archived by Prow jobs at OpenShift CI
 # The actual value will be set by the OpenShift CI accordingly
-ARTIFACT_DIR ?= "$(shell echo ${PWD})/out"
+ARTIFACT_DIR ?= $(shell echo ${PWD})/out
 
 GOCOV_DIR ?= $(ARTIFACT_DIR)/test-coverage
 GOCOV_FILE_TEMPL ?= $(GOCOV_DIR)/REPLACE_TEST.txt
@@ -127,10 +127,10 @@ BUNDLE_VERSION := $(OPERATOR_VERSION)-$(COMMIT_COUNT)
 
 QUAY_TOKEN ?= ""
 
-MANIFESTS_DIR ?= "$(shell echo ${PWD})/manifests"
-MANIFESTS_TMP ?= "$(shell echo ${PWD})/tmp/manifests"
-HACK_DIR ?= "$(shell echo ${PWD})/hack"
-OUTPUT_DIR ?= "$(shell echo ${PWD})/out"
+MANIFESTS_DIR ?= $(shell echo ${PWD})/manifests
+MANIFESTS_TMP ?= $(shell echo ${PWD})/tmp/manifests
+HACK_DIR ?= $(shell echo ${PWD})/hack
+OUTPUT_DIR ?= $(shell echo ${PWD})/out
 LOGS_DIR ?= $(OUTPUT_DIR)/logs
 
 GOLANGCI_LINT_BIN=$(OUTPUT_DIR)/golangci-lint
