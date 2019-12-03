@@ -127,10 +127,10 @@ BUNDLE_VERSION := $(OPERATOR_VERSION)-$(COMMIT_COUNT)
 
 QUAY_TOKEN ?= ""
 
-MANIFESTS_DIR ?= ./manifests
-MANIFESTS_TMP ?= ./tmp/manifests
-HACK_DIR ?= ./hack
-OUTPUT_DIR ?= ./out
+MANIFESTS_DIR ?= "$(shell echo ${PWD})/manifests"
+MANIFESTS_TMP ?= "$(shell echo ${PWD})/tmp/manifests"
+HACK_DIR ?= "$(shell echo ${PWD})/hack"
+OUTPUT_DIR ?= "$(shell echo ${PWD})/out"
 LOGS_DIR ?= $(OUTPUT_DIR)/logs
 
 GOLANGCI_LINT_BIN=$(OUTPUT_DIR)/golangci-lint
