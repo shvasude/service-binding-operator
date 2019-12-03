@@ -179,9 +179,9 @@ courier:
 .PHONY: setup-venv
 ## Setup virtual environment
 setup-venv:
-	$(Q)python3 -m venv $(OUTPUT_DIR)/venv3
-	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install --upgrade setuptools
-	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install --upgrade pip
+		$(Q)python3 -m venv $(OUTPUT_DIR)/venv3
+		$(Q)$(OUTPUT_DIR)/venv3/bin/pip install --upgrade setuptools
+		$(Q)$(OUTPUT_DIR)/venv3/bin/pip install --upgrade pip
 
 ## -- Test targets --
 
@@ -439,12 +439,22 @@ push-to-manifest-repo:
 	sed -i -e 's,REPLACE_IMAGE,$(OPERATOR_IMAGE_REL)-$(GIT_COMMIT_ID),g' $(MANIFESTS_TMP)/${BUNDLE_VERSION}/*.clusterserviceversion.yaml
 	sed -i -e 's,BUNDLE_VERSION,$(BUNDLE_VERSION),g' $(MANIFESTS_TMP)/*.yaml 
 
-
+$(shell mkdir -p ./test-quay);
+TEST_QUAY ?= ./test-quay
 ## -- Target for pushing manifest bundle to service-binding-operator-manifest repo --
 .PHONY: push-bundle-to-quay
 ## Push manifest bundle to service-binding-operator-manifest repo
-push-bundle-to-quay: setup-venv
-	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
-	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
-	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
-	rm -rf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)
+push-bundle-to-quay:
+	# $(Q)python3 -m venv $(OUTPUT_DIR)/venv3
+	# $(Q)$(OUTPUT_DIR)/venv3/bin/pip install --upgrade setuptools
+	# $(Q)$(OUTPUT_DIR)/venv3/bin/pip install --upgrade pip
+	# $(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
+	# $(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
+	# $(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
+	# rm -rf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)
+	$(Q)python3 -m venv ./test-quay/venv3
+	$(Q)${TEST_QUAY}/venv3/bin/pip install --upgrade setuptools
+	$(Q)${TEST_QUAY}/venv3/bin/pip install --upgrade pip
+	$(Q)${TEST_QUAY}/venv3/bin/pip install operator-courier
+	$(Q)${TEST_QUAY}/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
+	rm -rf ${TEST_QUAY}
