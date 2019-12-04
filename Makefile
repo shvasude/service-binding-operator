@@ -131,7 +131,11 @@ MANIFESTS_DIR ?= $(shell echo ${PWD})/manifests
 MANIFESTS_TMP ?= $(shell echo ${PWD})/tmp/manifests
 HACK_DIR ?= $(shell echo ${PWD})/hack
 OUTPUT_DIR ?= $(shell echo ${PWD})/out
+OLM_CATALOG_DIR ?= $(shell echo ${PWD})/deploy/olm-catalog
+CRDS_DIR ?= $(shell echo ${PWD})/deploy/crds
 LOGS_DIR ?= $(OUTPUT_DIR)/logs
+# $(shell sudo chmod -R 755 $(OLM_CATALOG_DIR));
+# $(shell sudo chmod -R 755 $(CRDS_DIR));
 
 GOLANGCI_LINT_BIN=$(OUTPUT_DIR)/golangci-lint
 
@@ -428,14 +432,14 @@ merge-to-master-release:
 push-to-manifest-repo:
 	
 	@rm -rf $(MANIFESTS_TMP) || true
-	@mkdir -p ${MANIFESTS_TMP}
+	@mkdir -p ${MANIFESTS_TMP}/${BUNDLE_VERSION}
 
 	operator-sdk olm-catalog gen-csv --csv-version $(BUNDLE_VERSION)
 	go build -ldflags "-X main.BundleVersion=$(BUNDLE_VERSION)" ./hack/add-info-to-csv.go 
 	./add-info-to-csv
-	cp -vrf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)/* $(MANIFESTS_TMP)/$(BUNDLE_VERSION)/
-	cp -vrf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/*package.yaml $(MANIFESTS_TMP)/	
-	cp -vrf deploy/crds/*_crd.yaml $(MANIFESTS_TMP)/${BUNDLE_VERSION}/
+	cp -vrf $(OLM_CATALOG_DIR)/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)/* $(MANIFESTS_TMP)/$(BUNDLE_VERSION)/
+	cp -vrf $(OLM_CATALOG_DIR)/$(GO_PACKAGE_REPO_NAME)/*package.yaml $(MANIFESTS_TMP)/	
+	cp -vrf $(CRDS_DIR)/*_crd.yaml $(MANIFESTS_TMP)/${BUNDLE_VERSION}/
 	sed -i -e 's,REPLACE_IMAGE,$(OPERATOR_IMAGE_REL)-$(GIT_COMMIT_ID),g' $(MANIFESTS_TMP)/${BUNDLE_VERSION}/*.clusterserviceversion.yaml
 	sed -i -e 's,BUNDLE_VERSION,$(BUNDLE_VERSION),g' $(MANIFESTS_TMP)/*.yaml 
 
