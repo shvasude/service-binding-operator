@@ -126,6 +126,7 @@ BUNDLE_VERSION := $(OPERATOR_VERSION)-$(COMMIT_COUNT)
 
 
 QUAY_TOKEN ?= ""
+QUAY_BUNDLE_TOKEN ?= ""
 
 MANIFESTS_DIR ?= $(shell echo ${PWD})/manifests
 MANIFESTS_TMP ?= $(shell echo ${PWD})/tmp/manifests
@@ -448,15 +449,9 @@ push-to-manifest-repo:
 ## Push manifest bundle to service-binding-operator-manifest repo
 push-bundle-to-quay: setup-venv
 	$(Q)python3.7 -m venv $(OUTPUT_DIR)/venv3
-	python3.7 --version
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install --upgrade setuptools
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install --upgrade pip
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
-	# $(shell echo "  replaces: service-binding-operator.v0.0.0" >> $(MANIFESTS_TMP)/$(BUNDLE_VERSION)/service-binding-operator.v$(BUNDLE_VERSION).clusterserviceversion.yaml)
-	# python3.7 -c "print(__import__('os').listdir('$(MANIFESTS_TMP)'))"
-	# python3.7 -c "print(__import__('os').listdir('$(MANIFESTS_TMP)/$(BUNDLE_VERSION)'))"
-	# python3.7 -c "print(open('$(MANIFESTS_TMP)/service-binding-operator.package.yaml').read())"
-	# python3.7 -c "print(open('$(MANIFESTS_TMP)/$(BUNDLE_VERSION)/service-binding-operator.v$(BUNDLE_VERSION).clusterserviceversion.yaml').read())"
-	# $(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
-	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) $(QUAY_TOKEN)
+	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
+	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_BUNDLE_TOKEN)"
 	rm -rf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)
