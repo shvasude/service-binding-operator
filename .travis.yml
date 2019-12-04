@@ -22,12 +22,12 @@ env:
 
 before_install:
 # Install deps
-- sudo apt-get update
-- sudo apt-get install software-properties-common
-- sudo add-apt-repository ppa:deadsnakes/ppa
-- sudo apt-get update
-- sudo apt-get install python3.7
-- sudo apt-get install python3.7-venv
+- sudo apt-get update -y
+- sudo apt-get install software-properties-common -y
+- sudo add-apt-repository ppa:deadsnakes/ppa -y
+- sudo apt-get update -y
+- sudo apt-get install python3.7 -y
+- sudo apt-get install python3.7-venv -y
 - python3 -m venv ./venv3
 # - ./venv3/bin/pip install operator-courier
 
