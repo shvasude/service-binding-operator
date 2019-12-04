@@ -453,6 +453,7 @@ push-bundle-to-quay: setup-venv
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
 	python3 -c "print(__import__('os').listdir('$(MANIFESTS_TMP)'))"
 	python3 -c "print(__import__('os').listdir('$(MANIFESTS_TMP)/$(BUNDLE_VERSION)'))"
+	python3 -c "print(open('$(MANIFESTS_TMP)/service-binding-operator.package.yaml').read())"
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier push $(MANIFESTS_TMP) $(OPERATOR_GROUP) $(GO_PACKAGE_REPO_NAME) $(BUNDLE_VERSION) "$(QUAY_TOKEN)"
 	rm -rf deploy/olm-catalog/$(GO_PACKAGE_REPO_NAME)/$(BUNDLE_VERSION)
