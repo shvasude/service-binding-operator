@@ -22,6 +22,8 @@ env:
 
 before_install:
 # Install deps
+- sudo apt install python3
+- apt-get upgrade python3
 - sudo apt-get install python3-venv
 - python3 -m venv ./venv3
 # - ./venv3/bin/pip install operator-courier
