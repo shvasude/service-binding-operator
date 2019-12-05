@@ -451,7 +451,7 @@ push-bundle-to-quay: setup-venv
 	$(Q)python3.7 -m venv $(OUTPUT_DIR)/venv3
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install --upgrade setuptools
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install --upgrade pip
-	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier
+	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install operator-courier==2.1.2
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier --version
 	$(Q)$(OUTPUT_DIR)/venv3/bin/operator-courier verify $(MANIFESTS_TMP)
 	echo "${QUAY_BUNDLE_TOKEN}" | docker login -u "avni16" --password-stdin quay.io
