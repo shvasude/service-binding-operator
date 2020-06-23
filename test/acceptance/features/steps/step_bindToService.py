@@ -12,12 +12,16 @@ from pyshould.expect import *
 
 @given('Service Binding Operator is installed')
 def given_sbo_is_installed(context):
-    context.sbo = Servicebindingoperator()
-    status = context.sbo.install("make install-service-binding-operator-master")
-    status | should.be_truthy
-    print("Service binding operator is installed as the result is {}".format(status))
-
-    
+    context.sbo = Servicebindingoperator()    
+    install_status = context.sbo.install("make install-service-binding-operator-master")    
+    install_status | should.be_truthy
+    print("Service binding operator is installed as the result is {}".format(install_status))
+    install_plan_status = context.sbo.get_install_plan_status()
+    install_plan_status | should.equal('Complete')
+    print("Install plan status is {}".format(install_plan_status))
+    sbo_pod_status = context.sbo.get_sbo_pod_status()
+    sbo_pod_status | should.equal('Running')
+    print("Status of the pod that is running service binding operator is {}".format(sbo_pod_status))
 
 @given('PostgreSQL DB operator is installed')
 def given_db_operator_is_installed(context):
