@@ -8,11 +8,15 @@ class Command(object):
         except subprocess.CalledProcessError as err:
             print('ERROR CODE:', err.returncode)
             print('ERROR MESSAGE:', err.output)
+
+            print('exit code: {}'.format(err.returncode))
+            print('stdout: {}'.format(err.output.decode(sys.getfilesystemencoding())))
+            print('stderr: {}'.format(err.stderr.decode(sys.getfilesystemencoding())))
+
         else:
             return output.decode('utf-8')
 
     def run_check_for_status(self, cmd, status=None, interval=10, timeout=60):
-        pdb.set_trace()
         start = 0
         if status != None:
             while ((start + interval) <= timeout):
@@ -22,4 +26,3 @@ class Command(object):
                 time.sleep(interval)
                 start += interval                
         return self.run(cmd)
-
