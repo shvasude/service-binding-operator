@@ -12,23 +12,40 @@ from pyshould.expect import *
 @given('Service Binding Operator is installed')
 def given_sbo_is_installed(context):
     context.sbo = Servicebindingoperator()    
-    install_status = context.sbo.install("make install-service-binding-operator-master")    
+    install_status = context.sbo.install("make install-service-binding-operator-master") 
     install_status | should.be_truthy
     print("Service binding operator is installed as the result is {}".format(install_status))
 
-    install_plan_status = context.sbo.get_install_plan_status()
+    install_plan_status = context.sbo.get_install_plan_status_sbo()
     install_plan_status | should.equal('Complete')
     print("Install plan status is {}".format(install_plan_status))    
+
     sbo_pod_status = context.sbo.get_sbo_pod_status()
     sbo_pod_status | should.be_equal_to('Running')
     print("Status of the pod that is running service binding operator is {}".format(sbo_pod_status))
 
 @given('PostgreSQL DB operator is installed')
 def given_db_operator_is_installed(context):
-    context.dbo = DbOperator()
-    status = context.dbo.install("make install-backing-db-operator-source")
+    context.dbOpr = DbOperator()
+    install_status = context.dbOpr.install_src("make install-backing-db-operator-source")
     install_status | should.be_truthy
-    print("Postgres DB operator is installed as the result is {}".format(install_status))    
+    print("Postgres DB operator source is installed as the result is {}".format(install_status))    
+
+    manifest = context.dbOpr.get_package_manifest()
+    manifest | should.be_truthy   
+    print('Manifest is displays as {}'.format(manifest)) 
+
+    install_sub_status = context.dbOpr.install_sub("make install-backing-db-operator-subscription")
+    install_sub_status | should.be_truthy
+    print("Postgres DB operator subscription is installed as the result is {}".format(install_status))    
+
+    install_plan_status = context.dbOpr.get_install_plan_status_dbOpr()
+    install_plan_status | should.equal('Complete')
+    print("Install plan status is {}".format(install_plan_status))    
+
+    sbo_pod_status = context.dbOpr.get_dbOpr_pod_status()
+    sbo_pod_status | should.be_equal_to('Running')
+    print("Status of the pod that is running service binding operator is {}".format(sbo_pod_status))
             
 @given(u'namespace "{namespace_name}" is used')
 def given_namespace_is_used(context, namespace_name):
