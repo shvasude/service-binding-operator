@@ -6,7 +6,7 @@ Feature: Bind an application to a service
     Background:
         Given Service Binding Operator is installed
         * PostgreSQL DB operator is installed
-        * namespace "service-binding-demo" is used
+        * Project "service-binding-demo" is used
 
     Scenario: Bind an imported nodejs app to PostgreSQL database
         Given Imported Nodejs application "nodejs-rest-http-crud" is running

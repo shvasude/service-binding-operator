@@ -22,7 +22,6 @@ class DbOperator(Servicebindingoperator):
             return True
         
     def get_package_manifest(self):
-        pdb.set_trace()
         cmd = 'oc get packagemanifest %s -o "jsonpath={.metadata.name}"'%self.pkgManifest
         manifest = self.cmdObj.run_check_for_status(cmd, status=self.pkgManifest)      
         manifest | should_not.be_equal_to(None)
