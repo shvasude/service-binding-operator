@@ -494,7 +494,7 @@ validate-release: setup-venv
 
 
 ## -- Target to check style of code
-.PHONY: check-codestyle
+.PHONY: check-code-style
 check-code-style:
 	$(eval CHECK_PYTHON=./hack/check-python)
 	$(Q)$(CHECK_PYTHON)/detect-common-errors.sh
