@@ -1,6 +1,7 @@
 import pdb, re, util
 from command import Command
 from pyshould import *
+from util import *
 
 class Servicebindingoperator(object):  
     def __init__(self):
@@ -8,7 +9,9 @@ class Servicebindingoperator(object):
         self.operatorsNS  = "openshift-operators"
         self.operatorName = "service-binding-operator"
 
-    def install(self, cmd):    
+    def install_master(self):    
+        #src_result = create_operator_source("redhat-developer-operators", "redhat-developer")
+        cmd = 'make install-service-binding-master'
         install_output = self.cmdObj.run(cmd)
         if re.search(r'.*redhat-developer-operators\s(unchanged|created)', install_output) and re.search(r'.*service-binding-operator\s(unchanged|created)', install_output):
     	    return True

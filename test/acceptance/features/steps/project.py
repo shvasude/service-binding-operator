@@ -3,11 +3,13 @@ from pyshould import *
 
 from command import Command
 
+
 class Project():  
     def __init__(self):
-        self.cmdObj = Command()
+        self.cmdObj = Command()        
         
-    def create(self, cmd, project):       
+    def create(self, project):       
+        cmd = "make create-project"
         create_pjt_output = self.cmdObj.run(cmd)
         if re.search(r'.*project.project.openshift.io\s\"%s\"\salready exists'%project, create_pjt_output):
             return self.setProject(project)
@@ -35,4 +37,4 @@ class Project():
         project_result | should_not.be_equal_to(None)
         if re.search(r'Already on project\s\"%s\"\son\sserver.*'%project, project_result):
             return True
-
+    

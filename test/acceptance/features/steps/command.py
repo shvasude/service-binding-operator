@@ -26,3 +26,8 @@ class Command(object):
                 time.sleep(interval)
                 start += interval                
         return self.run(cmd)
+
+    def run_yaml(self, yaml):        
+        output = subprocess.check_output(
+        "oc apply -f -", shell=True, stderr=subprocess.STDOUT, input=yaml.encode("utf-8"))
+        return output.decode("utf-8")
