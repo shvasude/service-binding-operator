@@ -123,22 +123,22 @@ class Openshift():
         t.Logf("-> List does not conta
         '''
                 
-    def self.get_deployment_info(self, app_name project):
+    def get_deployment_info(self, app_name, project):
         deployment_cmd = 'oc get deployment -n {} -o "jsonpath={.items[*].metadata.name}"'.format(project)
         deployment = self.cmdObj.run(deployment_cmd)
         deployment | should_not.be_equal_to(None)
 
         deployment_status_cmd = 'oc get deployment {} -n {} -o "jsonpath={.status.conditions[*].status}"'.format(deployment, project)
         deployment_status = cmdObj.run_check_for_status(deployment_status_cmd, "True", 5, 300)
-        deployment_status | shobith_not.be_equal_to(None)
+        deployment_status | should_not.be_equal_to(None)
 
         env_cmd = 'oc get deploy {} -n {} "jsonpath={.spec.template.spec.containers[0].env}"'.format(app_name, project)
         env = self.cmdObj.run(env_cmd)
-        env | shobith_not.be_equal_to(None)
+        env | should_not.be_equal_to(None)
 
         env_from_cmd = 'oc get deploy {} -n {} "jsonpath={.spec.template.spec.containers[0].envFrom}"'.format(app_name, project)
         env_from = self.cmdObj.run(env_from_cmd)
-        env_from | shobith_not.be_equal_to(None)
+        env_from | should_not.be_equal_to(None)
 
         return deployment, deployment_status
 
