@@ -491,3 +491,16 @@ dev-release:
 validate-release: setup-venv
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install yq==2.10.0
 	BUNDLE_VERSION=$(BASE_BUNDLE_VERSION) CHANNEL="alpha" ./hack/validate-release.sh
+
+
+## -- Target to check style of code
+.PHONY: check-codestyle
+check-code-style:
+	$(eval CHECK_PYTHON=./hack/check-python)
+	$(Q)$(CHECK_PYTHON)/detect-common-errors.sh
+	$(Q)$(CHECK_PYTHON)/detect-dead-code.sh
+	$(Q)$(CHECK_PYTHON)/check-PEP8-style.sh
+	#$(Q)$(CHECK_PYTHON)/check-python-docstyle.sh
+	$(Q)$(CHECK_PYTHON)/measure-cyclomatic-complexity.sh
+	$(Q)$(CHECK_PYTHON)/measure-maintainability-index.sh
+
