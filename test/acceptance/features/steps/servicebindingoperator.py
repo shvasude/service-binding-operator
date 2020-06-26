@@ -22,3 +22,6 @@ class Servicebindingoperator(object):
 
     def get_sbo_pod_status(self):
         return util.get_pod_status(self.operatorName, self.operatorsNS)
+
+    def is_present(self):
+        return False

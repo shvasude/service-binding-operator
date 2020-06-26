@@ -7,7 +7,7 @@ from pyshould import should
 
 from servicebindingoperator import Servicebindingoperator
 from dboperator import DbOperator
-from project import Project
+from namespace import Namespace
 
 
 @given('Service Binding Operator is running')
@@ -16,6 +16,7 @@ def given_sbo_is_running(context):
     Checks if the SBO is up and running
     """
     context.sbo = Servicebindingoperator()
+    context.sbo.is_present() | should.be_truthy
 
 
 @given('PostgreSQL DB operator is installed')
@@ -49,27 +50,20 @@ def given_db_operator_is_installed(context):
 
 @given(u'Namespace "{namespace_name}" is used')
 def given_namespace_is_used(context, namespace_name):
-    context.namespace = namespace_name
-    context.pjtObj = Project(namespace_name)
-    create_project_status = context.pjtObj.create(namespace_name)
-    create_project_status | should.be_truthy
-    print("Namespace created and set is {} as the result is {}".format(
-        namespace_name, create_project_status))
-
-    context.pjtObj.is_present(namespace_name) | should.be_truthy
-
-    project_status = context.pjtObj.get_project_status(namespace_name)
-    project_status | should.be_equal_to('Active')
-    print("Namespace of the project in a cluster is {}".format(project_status))
+    context.namespace = Namespace(namespace_name)
+    if not context.namespace.is_present():
+        create_project_status = context.namespace.create()
+        create_project_status | should.be_truthy
+        print("Namespace created and set is {} as the result is {}".format(namespace_name, create_project_status))
 
 
 @given(u'Imported Nodejs application "{application_name}" is running')
 def given_imported_nodejs_app_is_running(context, application_name):
     (build_config, build_status, deployment_config,
-     nodejs_app_pod_status) = context.pjt.create_new_app(application_name, context.namespace)
+     nodejs_app_pod_status) = context.namespace.create_new_app(application_name, context.namespace.name)
     print('Nodejs application is deployed successfully and running with deployment config')
-    (deployment, deploymentStatus) = context.pjt.use_deployment(
-        application_name, deployment_config, context.namespace)
+    (deployment, deploymentStatus) = context.namespace.use_deployment(
+        application_name, deployment_config, context.namespace.name)
     deploymentStatus | should.be_equal_to('True')
     print("Deployment is successful")
 

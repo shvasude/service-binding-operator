@@ -12,22 +12,8 @@ before_all(context), after_all(context)
     These run before and after the whole shooting match.
 """
 
-import os
-import builtins
 import subprocess
 from pyshould import should
-
-
-def before_scenario(_context, scenario):
-    if scenario.name == "Bind an imported nodejs app to PostgreSQL database":
-        # Setting the directory
-        home_path = os.getcwd()
-        # Printing CWD after setting it to nodejs_postgresql folder
-        builtins.path = os.path.join(home_path, 'examples/nodejs_postgresql')
-
-
-def before_all(_context):
-    os.system('export KUBECONFIG=$HOME/.kube/config')
 
 
 def before_step(_context, _step):
@@ -35,5 +21,5 @@ def before_step(_context, _step):
     code, output = subprocess.getstatusoutput('oc status')
     print("[CODE] {}".format(code))
     print("[CMD] {}".format(output))
-    code | should.be_an_integer.and_equal(0)
+    code | should.be_equal_to(0)
     print("***Connected to cluster***")

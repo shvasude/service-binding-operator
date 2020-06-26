@@ -15,27 +15,27 @@ class Openshift():
             apiVersion: operators.coreos.com/v1
             kind: OperatorSource
             metadata:
-            name: {name}
-            namespace: openshift-marketplace
+                name: {name}
+                namespace: openshift-marketplace
             spec:
-            type: appregistry
-            endpoint: https://quay.io/cnr
-            registryNamespace: {registry_namespace}
+                type: appregistry
+                endpoint: https://quay.io/cnr
+                registryNamespace: {registry_namespace}
             '''
         self.operator_subscription_yaml_template = '''
             ---
             apiVersion: operators.coreos.com/v1alpha1
             kind: Subscription
             metadata:
-            name: '{name}'
-            namespace: openshift-operators
+                name: '{name}'
+                namespace: openshift-operators
             spec:
-            channel: '{channel}' # the quotes are necessary to avoid conversions from strings like '1.0' to be converted to actual decimal numbers
-            installPlanApproval: Automatic
-            name: '{name}'
-            source: '{operator_source_name}'
-            sourceNamespace: openshift-marketplace
-            startingCSV: '{csv_version}'
+                channel: '{channel}' # the quotes are necessary to avoid conversions from strings like '1.0' to be converted to actual decimal numbers
+                installPlanApproval: Automatic
+                name: '{name}'
+                source: '{operator_source_name}'
+                sourceNamespace: openshift-marketplace
+                startingCSV: '{csv_version}'
             '''
 
     def oc_apply(self, yaml):
