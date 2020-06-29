@@ -16,8 +16,8 @@ import subprocess
 from pyshould import should
 
 
-def before_step(_context, _step):
-    print("Getting OC status on each step")
+def before_scenario(_context, _scenario):
+    print("Getting OC status before {} scenario".format(_scenario))
     code, output = subprocess.getstatusoutput('oc status')
     print("[CODE] {}".format(code))
     print("[CMD] {}".format(output))

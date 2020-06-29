@@ -4,7 +4,7 @@ Feature: Bind an application to a service
     I want to bind applications to services it depends on
 
     Background:
-        Given Service Binding Operator is installed
+        Given Service Binding Operator is running
         * PostgreSQL DB operator is installed
         * Namespace "service-binding-demo" is used
 

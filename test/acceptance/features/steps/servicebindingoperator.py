@@ -1,27 +1,20 @@
-import re
-import util
-from command import Command
+from openshift import Openshift
 
 
-class Servicebindingoperator(object):
-    def __init__(self):
-        self.cmdObj = Command()
-        self.operatorsNS = "openshift-operators"
-        self.operatorName = "service-binding-operator"
+class Servicebindingoperator():
+    openshift = Openshift()
+    operator_name = ""
+    operator_namespace = ""
 
-    def install_master(self):
-        # src_result = create_operator_source("redhat-developer-operators", "redhat-developer")
-        cmd = 'make install-service-binding-master'
-        install_output = self.cmdObj.run(cmd)
-        if re.search(r'.*redhat-developer-operators\s(unchanged|created)', install_output) \
-                and re.search(r'.*service-binding-operator\s(unchanged|created)', install_output):
-            return True
+    def __init__(self,  name="service-binding-operator", namespace="openshift-operators"):
+        self.operator_namespace = namespace
+        self.operator_name = name
 
-    def get_install_plan_status_sbo(self):
-        return util.get_install_plan_status(self.operatorName, self.operatorsNS)
-
-    def get_sbo_pod_status(self):
-        return util.get_pod_status(self.operatorName, self.operatorsNS)
-
-    def is_present(self):
-        return False
+    def is_running(self):
+        pod_name = self.openshift.search_pod_in_namespace(self.operator_name, self.operator_namespace)
+        if pod_name is not None:
+            operator_pod_status = self.openshift.check_pod_status(pod_name, self.operator_namespace)
+            print("The pod {} is running: {}".format(self.operator_name, operator_pod_status))
+            return operator_pod_status
+        else:
+            return False
