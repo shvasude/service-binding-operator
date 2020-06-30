@@ -65,6 +65,20 @@ spec:
             print('Pods list is empty under namespace - {}'.format(namespace))
             return None
 
+    def wait_for_pod(self, pod_name_part, namespace, interval=5, timeout=60):
+        pod = self.search_pod_in_namespace(pod_name_part, namespace)
+        start = 0
+        if pod is not None:
+            return pod
+        else:
+            while ((start + interval) <= timeout):
+                pod = self.search_pod_in_namespace(pod_name_part, namespace)
+                if pod is not None:
+                    return pod
+                time.sleep(interval)
+                start += interval
+        return None
+
     def check_pod_status(self, pod_name, namespace, wait_for_status="Running"):
         if pod_name is not None:
             cmd = 'oc get pod %s -n %s -o "jsonpath={.status.phase}"' % (pod_name, namespace)
@@ -75,7 +89,6 @@ spec:
 
     def oc_apply(self, yaml):
         (output, exit_code) = self.cmd.run("oc apply -f -", yaml)
-        print("[{}][{}]".format(exit_code, output))
         return output
 
     def create_operator_source(self, name, registry_namespace):
@@ -83,11 +96,10 @@ spec:
         return self.oc_apply(operator_source)
 
     def get_current_csv(self, package_name, catalog, channel):
-        cmd = 'oc get packagemanifests -o json | jq -r ".items[] \
-            | select(.metadata.name==\"{package_name}\") \
-            | select(.status.catalogSource==\"{catalog}\").status.channels[] \
-            | select(.name==\"{channel}\").currentCSV"'.format(
-            package_name=package_name, catalog=catalog, channel=channel)
+        cmd = f'oc get packagemanifests -o json | jq -r \'.items[] \
+            | select(.metadata.name=="{package_name}") \
+            | select(.status.catalogSource=="{catalog}").status.channels[] \
+            | select(.name=="{channel}").currentCSV\''
         current_csv, exit_code = self.cmd.run(cmd)
 
         if current_csv is None:
@@ -96,8 +108,6 @@ spec:
         current_csv = current_csv.strip("\n")
         if current_csv == "" or exit_code != 0:
             current_csv = None
-
-        print("[{}]".format(current_csv))
         return current_csv
 
     def create_operator_subscription(self, package_name, operator_source_name, channel):
@@ -106,7 +116,7 @@ spec:
             channel=channel, csv_version=self.get_current_csv(package_name, operator_source_name, channel))
         return self.oc_apply(operator_subscription)
 
-    def wait_for_package_manifest(self, package_name, operator_source_name, operator_channel, interval=5, timeout=12):
+    def wait_for_package_manifest(self, package_name, operator_source_name, operator_channel, interval=5, timeout=60):
         current_csv = self.get_current_csv(package_name, operator_source_name, operator_channel)
         start = 0
         if current_csv is not None:

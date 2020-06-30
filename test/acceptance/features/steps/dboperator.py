@@ -21,8 +21,11 @@ class DbOperator():
         self.operator_name = name
         self.operator_namespace = namespace
 
-    def is_running(self):
-        pod_name = self.openshift.search_pod_in_namespace(self.operator_name, self.operator_namespace)
+    def is_running(self, wait_for_pod=False):
+        if wait_for_pod:
+            pod_name = self.openshift.wait_for_pod(self.operator_name, self.operator_namespace)
+        else:
+            pod_name = self.openshift.search_pod_in_namespace(self.operator_name, self.operator_namespace)
         if pod_name is not None:
             operator_pod_status = self.openshift.check_pod_status(pod_name, self.operator_namespace)
             print("The pod {} is running: {}".format(self.operator_name, operator_pod_status))

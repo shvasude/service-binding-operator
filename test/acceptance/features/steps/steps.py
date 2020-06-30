@@ -8,6 +8,7 @@ from pyshould import should
 from servicebindingoperator import Servicebindingoperator
 from dboperator import DbOperator
 from namespace import Namespace
+from nodejs_application import NodeJSApp
 
 
 @given('Service Binding Operator is running')
@@ -28,7 +29,7 @@ def given_db_operator_is_installed(context):
         print("DB operator is not installed, installing...")
         db_operator.install_operator_source() | should.be_truthy.desc("DB operator source installed")
         db_operator.install_operator_subscription() | should.be_truthy.desc("DB operator subscription installed")
-    db_operator.is_running() | should.be_truthy.desc("DB operator installed")
+    db_operator.is_running(wait_for_pod=True) | should.be_truthy.desc("DB operator installed")
     context.db_operator = db_operator
     print("PostgresSQL DB operator is running!!!")
 
@@ -38,37 +39,36 @@ def given_namespace_is_used(context, namespace_name):
     namespace = Namespace(namespace_name)
     if not namespace.is_present():
         namespace.create() | should.be_truthy.desc("Namespace {} is created".format(namespace_name))
-    context.namespace = namespace_name
+    context.namespace = namespace
 
 
 @given(u'Imported Nodejs application "{application_name}" is running')
 def given_imported_nodejs_app_is_running(context, application_name):
-    # namespace = context.namespace_name
-    # openshift = Openshift()
-    # if not openshift.is_nodejs_app_running(application_name, namespace):
-    #    print("nodejs app is not running, creating new app")
-    #    openshift.create_new_app(application_name, namespace) | should.be_truthy.desc("nodejs application is imported and deployed successfully")
-    pass
+    namespace = context.namespace
+    application = NodeJSApp(application_name, namespace.name)
+    if not application.is_running():
+        application.install() | should.be_truthy.desc("Application is installed")
+        application.is_running() | should.be_truthy.desc("Application is running")
+        application.get_db_name_from_api() | should.be_equal_to("N/A")
 
 
 @given(u'DB "{db_name}" is running')
 def given_db_instance_is_running(context, db_name):
+    namespace = context.namespace
+    db_operator = context.db_operator
 
-    # (status, db_instance_name, connection_ip,
-    # db_instance_pod_status) = context.db_operator.check_db_instance_status(db_name, context.namespace.name)
-    # if status is True:
-    #    print("db instance name is {}, connection ip is {}, db instance pod status is {}".format(
-    #        db_instance_name, connection_ip, db_instance_pod_status))
-    # else:
-    #    create_db_instance_status = context.db_operator.create_db_instance(
-    #        db_name)
-    #    create_db_instance_status | should.be_truthy
-    #    print("Postgres DB operator source is installed as the result is {}".format(
-    #        create_db_instance_status))
-    #    given_db_instance_is_running(context, db_name)
-
-    raise NotImplementedError(
-        u'DB "{}" is running'.format(db_name))
+    (status, db_instance_name, connection_ip,
+     db_instance_pod_status) = db_operator.check_db_instance_status(db_name, namespace.name)
+    if status is True:
+        print("db instance name is {}, connection ip is {}, db instance pod status is {}".format(
+            db_instance_name, connection_ip, db_instance_pod_status))
+    else:
+        create_db_instance_status = db_operator.create_db_instance(
+            db_name)
+        create_db_instance_status | should.be_truthy
+        print("Postgres DB operator source is installed as the result is {}".format(
+            create_db_instance_status))
+        given_db_instance_is_running(context, db_name)
 
 
 @when(u'Service Binding Request is applied to connect the database and the application')

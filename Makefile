@@ -277,6 +277,11 @@ test-unit-with-coverage:
 		go test $(shell GOCACHE="$(GOCACHE)" go list ./...|grep -v e2e|grep -v examples) $(GOCOV_FLAGS) -v -mod vendor $(TEST_EXTRA_ARGS)
 	$(Q)GOCACHE=$(GOCACHE) go tool cover -func=$(GOCOV_FILE)
 
+.PHONY: test-acceptance
+## Runs acceptance tests
+test-acceptance:
+	$(Q) behave -v --no-capture --no-capture-stderr test/acceptance/features
+
 .PHONY: test
 ## Test: Runs unit and integration (e2e) tests
 test: test-unit test-e2e
