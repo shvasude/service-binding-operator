@@ -49,17 +49,6 @@ class DbOperator():
         manifest | should.equal(self.pkgManifest)
         return manifest
 
-    def get_install_plan_status_dbOpr(self):
-        return self.get_install_plan_status(self.pkgManifest, self.operatorsNS)
-
-    def get_db_operator_pod_status(self):
-        db_operator_pod_status = self.get_pod_status(self.backSvcName, self.operator_ns)
-        print("Status of the pod that is running db operator is {}".format(db_operator_pod_status))
-        if db_operator_pod_status == "Running":
-            return True
-        else:
-            return False
-
     def create_db_instance(self, db_name):
         cmd = 'make create-backing-db-instance'
         create_db_instance_output = self.cmd.run(cmd)

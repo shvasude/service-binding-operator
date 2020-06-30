@@ -1,14 +1,15 @@
 import re
 import time
-from pyshould import should, should_not
+from pyshould import should
 
 from command import Command
+
+nodejs_app = "https://github.com/pmacik/nodejs-rest-http-crud"
 
 
 class Openshift(object):
     def __init__(self):
         self.cmd = Command()
-        self.nodejs_app = "https://github.com/pmacik/nodejs-rest-http-crud"
         self.operator_source_yaml_template = '''
 ---
 apiVersion: operators.coreos.com/v1
@@ -82,10 +83,10 @@ spec:
         return self.oc_apply(operator_source)
 
     def get_current_csv(self, package_name, catalog, channel):
-        cmd = "oc get packagemanifests -o json | jq -r '.items[] \
+        cmd = 'oc get packagemanifests -o json | jq -r ".items[] \
             | select(.metadata.name==\"{package_name}\") \
             | select(.status.catalogSource==\"{catalog}\").status.channels[] \
-            | select(.name==\"{channel}\").currentCSV'".format(
+            | select(.name==\"{channel}\").currentCSV"'.format(
             package_name=package_name, catalog=catalog, channel=channel)
         current_csv, exit_code = self.cmd.run(cmd)
 
@@ -119,91 +120,105 @@ spec:
                 start += interval
         return False
 
-    def create_new_app(self, app_name, project):
-        nodjs_app_arg = "nodejs~" + self.nodeJSApp
-        cmd = "oc new-app {} --name {} -n {}".format(
-            nodjs_app_arg, app_name, project)
-        create_new_app_output = self.cmd.run(cmd)
-        create_new_app_output | should_not.be_equal_to(None)
+    def is_nodejs_app_running(self, app_name, namespace):
+        build_flag = True
+        deployment_flag = True
+        (flag_for_build, build_name) = self.get_build_name(namespace)
+        (flag_for_deployment_name, deployment_name) = self.get_deployment_name(namespace)
 
-        build_config = self.get_build_config()
-        build_config | should.have(app_name)
+        if len(build_name) == 0:
+            build_flag = False
+        if len(deployment_name) == 0:
+            deployment_flag = False
 
-        (build_name, build_status) = self.get_build_status()
-        build_status | should.be_equal_to("Complete")
-        build_name | should.have(build_config)
+        print(build_flag + deployment_flag)
 
         exp_build_pod_name = build_name + "-build"
-        nodejs_app_pod_status = self.get_nodejs_app_pod_status(exp_build_pod_name, project, "Succeeded")
-        nodejs_app_pod_status | should.be_equal_to("Succeeded")
+        nodejs_app_pod_status, exit_code = self.check_pod_status(exp_build_pod_name, namespace, wait_for_status="Succeeded")
+        if exit_code != 0:
+            print("Pod not found")
 
-        deployment_config = self.get_deployment_config(project)
+        if nodejs_app_pod_status == "Succeeded" and (self.check_build_status(build_name) == "Complete" or self.check_for_deployment_status() == "True"):
+            return True
+        else:
+            return False
+
+    def create_new_app(self, app_name, namespace):
+        nodjs_app_arg = "nodejs~" + self.nodejs_app
+        cmd = "oc new-app {} --name {} -n {}".format(nodjs_app_arg, app_name, namespace)
+
+        (create_new_app_output, exit_code) = self.cmd.run(cmd)
+        exit_code | should.be_equal_to(0)
+
+        build_config = self.get_build_config()
+        build_config | should.contains(app_name)
+
+        (flag_for_build, build_name) = self.get_build_name(namespace)
+        if flag_for_build != 0:
+            return None
+
+        deployment_config = self.get_deployment_config(namespace)
         deployment_config | should.be_equal_to(build_config)
 
-        return build_config, build_status, deployment_config, nodejs_app_pod_status
-
-    def get_nodejs_app_pod_status(self, exp_build_pod_name, project, wait_for_status):
-        return self.get_pod_status(exp_build_pod_name, project, wait_for_status)
+        self.is_nodejs_app_running(app_name, namespace)
 
     def get_build_config(self):
         cmd = 'oc get bc -o "jsonpath={.items[*].metadata.name}"'
-        build_config = self.cmd.run(cmd)
-        build_config | should_not.be_equal_to(None)
-        return
+        (build_config, exit_code) = self.cmd.run(cmd)
+        exit_code | should.be_equal_to(0)
+        return build_config
 
-    def get_build_status(self):
-        cmd_build_name = 'oc get build -o "jsonpath={.items[*].metadata.name}"'
-        build_name = self.cmd.run(cmd_build_name)
-        build_name | should_not.be_equal_to(None)
+    def get_build_name(self, namespace):
+        flag = False
+        cmd_build_name = 'oc get build -n %s -o "jsonpath={.items[*].metadata.name}"' % namespace
+        (build_name, exit_code) = self.cmd.run(cmd_build_name)
+        if exit_code == 0:
+            flag = True
+        return flag, build_name
 
-        cmd_build_status = 'oc get build {} -o "jsonpath={{.status.phase}}"'.format(
-            build_name)
-        build_status = self.cmd.run_check_for_status(
-            cmd_build_status, "Complete", 5, 300)
-        build_status | should_not.be_equal_to(None)
-        return build_name, build_status
+    def check_build_status(self, build_name, wait_for_status="Complete"):
+        cmd_build_status = 'oc get build %s -o "jsonpath={{.status.phase}}"' % build_name
+        (build_status, exit_code) = self.cmd.run_wait_for_status(cmd_build_status, wait_for_status, 5, 300)
+        exit_code | should.be_equal_to(0)
+        return build_status
 
-    def get_deployment_config(self, project):
-        cmd = 'oc get dc -n {} -o "jsonpath={{.items[*].metadata.name}}"'.format(
-            project)
-        deployment_config = self.cmd.run(cmd)
-        deployment_config | should_not.be_equal_to(None)
+    def get_deployment_config(self, namespace):
+        cmd = 'oc get dc -n %s -o "jsonpath={{.items[*].metadata.name}}"' % namespace
+        (deployment_config, exit_code) = self.cmd.run(cmd)
+        exit_code | should.be_equal_to(0)
         return deployment_config
 
-    def delete_deployment_config(self, deployment_config, project, db_name):
-        cmd = 'oc delele dc {} -n {}'.format(deployment_config, project)
+    def delete_deployment_config(self, deployment_config, namespace, db_name):
+        cmd = 'oc delele dc {} -n {}'.format(deployment_config, namespace)
         delete_output = self.cmd.run(cmd)
         if re.search(r'.*database.postgresql.baiju.dev/%s\sdeleted' % db_name, delete_output):
             return True
         else:
             return False
 
-    def get_deployment_info(self, app_name, project):
-        deployment_cmd = 'oc get deployment -n {} -o "jsonpath={{.items[*].metadata.name}}"'.format(
-            project)
-        deployment = self.cmd.run(deployment_cmd)
-        deployment | should_not.be_equal_to(None)
+    def check_for_deployment_status(self, deployment_name, namespace, wait_for_status="True"):
+        deployment_status_cmd = 'oc get deployment %s -n %s -o "jsonpath={.status.conditions[*].status}"' % (deployment_name, namespace)
+        deployment_status, exit_code = self.cmd.run_check_for_status(deployment_status_cmd, wait_for_status, 5, 300)
+        exit_code | should.be_equal_to(0)
+        return deployment_status
 
-        deployment_status_cmd = 'oc get deployment {} -n {} -o "jsonpath={{.status.conditions[*].status}}"'.format(
-            deployment, project)
-        deployment_status = self.cmd.run_check_for_status(
-            deployment_status_cmd, "True", 5, 300)
-        deployment_status | should_not.be_equal_to(None)
+    def get_deployment_name(self, namespace):
+        deployment_cmd = 'oc get deployment -n %s -o "jsonpath={.items[*].metadata.name}"' % namespace
+        deployment, exit_code = self.cmd.run(deployment_cmd)
+        if exit_code == 0:
+            flag = True
+        return flag, deployment
 
-        env_cmd = 'oc get deploy {} -n {} "jsonpath={{.spec.template.spec.containers[0].env}}"'.format(
-            app_name, project)
-        env = self.cmd.run(env_cmd)
-        env | should_not.be_equal_to(None)
+    def get_deployment_env_info(self, app_name, namespace):
+        env_cmd = 'oc get deploy %s -n %s "jsonpath={{.spec.template.spec.containers[0].env}}"' % (app_name, namespace)
+        env, exit_code = self.cmd.run(env_cmd)
+        exit_code | should.be_equal_to(0)
+        env_from_cmd = 'oc get deploy %s -n %s "jsonpath={{.spec.template.spec.containers[0].envFrom}}"' % (app_name, namespace)
+        env_from, exit_code = self.cmd.run(env_from_cmd)
+        exit_code | should.be_equal_to(0)
+        return env, env_from
 
-        env_from_cmd = 'oc get deploy {} -n {} "jsonpath={{.spec.template.spec.containers[0].envFrom}}"'.format(
-            app_name, project)
-        env_from = self.cmd.run(env_from_cmd)
-        env_from | should_not.be_equal_to(None)
-
-        return deployment, deployment_status
-
-    def use_deployment(self, application_name, deployment_config, project):
-        self.delete_deployment_config(
-            deployment_config, project) | should.be_truthy
+    def use_deployment(self, application_name, deployment_config, namespace):
+        self.delete_deployment_config(deployment_config, namespace) | should.be_truthy
         self.oc_apply("deployment.yaml")
-        return self.get_deployment_info(application_name, project)
+        return self.get_deployment_info(application_name, namespace)

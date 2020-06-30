@@ -43,16 +43,12 @@ def given_namespace_is_used(context, namespace_name):
 
 @given(u'Imported Nodejs application "{application_name}" is running')
 def given_imported_nodejs_app_is_running(context, application_name):
-
     # namespace = context.namespace_name
-    # openshift = openshift()
-    # (build_config, build_status, deployment_config,nodejs_app_pod_status) = openshift.create_new_app(application_name, namespace)
-    # print('Nodejs application is deployed successfully and running with deployment config')
-    # (deployment, deploymentStatus) = openshift.use_deployment(application_name, deployment_config, namespace)
-    # deploymentStatus | should.be_equal_to('True')
-    # print("Deployment is successful")
-
-    raise NotImplementedError(u'Imported Nodejs application "{}" is running'.format(application_name))
+    # openshift = Openshift()
+    # if not openshift.is_nodejs_app_running(application_name, namespace):
+    #    print("nodejs app is not running, creating new app")
+    #    openshift.create_new_app(application_name, namespace) | should.be_truthy.desc("nodejs application is imported and deployed successfully")
+    pass
 
 
 @given(u'DB "{db_name}" is running')
