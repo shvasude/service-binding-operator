@@ -1,5 +1,4 @@
 import re
-from pyshould import should
 
 from command import Command
 
@@ -10,26 +9,31 @@ class Namespace():
         self.cmd = Command()
 
     def create(self):
-        create_ns_output, exit_code = self.cmd.run("oc new-project {}".format(self.name))
-        if re.search(r'Now using project \"%s\"\son\sserver' % self.name, create_ns_output):
-            return True
-        elif re.search(r'.*project.project.openshift.io\s\"%s\"\salready exists' % self.name, create_ns_output):
-            return self.switch_to(self.name)
-        elif re.search(r'.*Already\son\sproject\s\"%s\"\son\sserver.*' % self.name, create_ns_output):
-            return True
+        create_namespace_output, exit_code = self.cmd.run("oc new-project {}".format(self.name))
+        flag = False
+        if re.search(r'Now using project \"%s\"\son\sserver' % self.name, create_namespace_output):
+            flag = True
+        elif re.search(r'.*project.project.openshift.io\s\"%s\"\salready exists' % self.name, create_namespace_output):
+            flag = self.switch_to()
+        elif re.search(r'.*Already\son\sproject\s\"%s\"\son\sserver.*' % self.name, create_namespace_output):
+            flag = True
         else:
-            print("Returned a different value {}".format(create_ns_output))
+            print("Returned a different value {}".format(create_namespace_output))
+            flag = False
+        if flag:
+            return self.is_present()
+        else:
             return False
 
     def is_present(self):
         output, exit_code = self.cmd.run('oc get ns {}'.format(self.name))
         return exit_code == 0
 
-    def get_status(self):
-        self.is_present() | should.be_truthy
-        return self.cmd.run('oc get ns {} -o "jsonpath={{.status.phase}}"'.format(self.name))
-
     def switch_to(self):
-        output, exit_code = self.cmd.run('oc project {}'.format(self.name))
-        exit_code | should.be_equal_to(0)
-        return output
+        create_namespace_output, exit_code = self.cmd.run('oc project {}'.format(self.name))
+        if re.search(r'Now using project \"%s\"\son\sserver' % self.name, create_namespace_output):
+            return True
+        elif re.search(r'.*Already\son\sproject\s\"%s\"\son\sserver.*' % self.name, create_namespace_output):
+            return True
+        else:
+            return False

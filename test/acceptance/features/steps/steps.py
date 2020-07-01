@@ -38,7 +38,9 @@ def given_db_operator_is_installed(context):
 def given_namespace_is_used(context, namespace_name):
     namespace = Namespace(namespace_name)
     if not namespace.is_present():
+        print("Namespace is not present, creating namespace {}...".format(namespace_name))
         namespace.create() | should.be_truthy.desc("Namespace {} is created".format(namespace_name))
+    print("Namespace {} is created!!!".format(namespace_name))
     context.namespace = namespace
 
 
@@ -49,7 +51,8 @@ def given_imported_nodejs_app_is_running(context, application_name):
     if not application.is_running():
         application.install() | should.be_truthy.desc("Application is installed")
         application.is_running() | should.be_truthy.desc("Application is running")
-        application.get_db_name_from_api() | should.be_equal_to("N/A")
+    print("Nodejs application is running!!!")
+    application.get_db_name_from_api() | should.be_equal_to("N/A")
 
 
 @given(u'DB "{db_name}" is running')
