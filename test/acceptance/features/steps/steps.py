@@ -29,7 +29,7 @@ def given_db_operator_is_installed(context):
         print("DB operator is not installed, installing...")
         db_operator.install_operator_source() | should.be_truthy.desc("DB operator source installed")
         db_operator.install_operator_subscription() | should.be_truthy.desc("DB operator subscription installed")
-    db_operator.is_running(wait_for_pod=True) | should.be_truthy.desc("DB operator installed")
+    db_operator.is_running(wait=True) | should.be_truthy.desc("DB operator installed")
     context.db_operator = db_operator
     print("PostgresSQL DB operator is running!!!")
 
@@ -50,7 +50,7 @@ def given_imported_nodejs_app_is_running(context, application_name):
     application = NodeJSApp(application_name, namespace.name)
     if not application.is_running():
         application.install() | should.be_truthy.desc("Application is installed")
-        application.is_running() | should.be_truthy.desc("Application is running")
+        application.is_running(wait=True) | should.be_truthy.desc("Application is running")
     print("Nodejs application is running!!!")
     application.get_db_name_from_api() | should.be_equal_to("N/A")
 
@@ -76,7 +76,7 @@ def given_db_instance_is_running(context, db_name):
 
 @when(u'Service Binding Request is applied to connect the database and the application')
 def when_sbr_is_applied(context):
-    # print("SBO YAML: {}".format(context.text))
+    print("SBO YAML: {}".format(context.text))
     raise NotImplementedError(
         u'STEP: When Service Binding Request is applied to connect the database and the application')
 

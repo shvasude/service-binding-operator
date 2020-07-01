@@ -16,8 +16,11 @@ class NodeJSApp(object):
         self.name = name
         self.namespace = namespace
 
-    def is_running(self):
-        pod_name = self.openshift.wait_for_pod(self.name, self.namespace)
+    def is_running(self, wait=False):
+        if wait:
+            pod_name = self.openshift.wait_for_pod(self.name, self.namespace)
+        else:
+            pod_name = self.openshift.search_pod_in_namespace(self.name, self.namespace)
         if pod_name is not None:
             application_pod_status = self.openshift.check_pod_status(pod_name, self.namespace)
             print("The pod {} is running: {}".format(self.name, application_pod_status))
@@ -30,14 +33,14 @@ class NodeJSApp(object):
         nodejs_app_arg = "nodejs~" + self.nodejs_app
         cmd = "oc new-app {} --name {} -n {}".format(nodejs_app_arg, self.name, self.namespace)
         (create_new_app_output, exit_code) = self.cmd.run(cmd)
-        pattern = 'Creating resources\\s...\n\\s?imagestream.image.openshift.io\\s\"{app_name}\"\\screated\n\\s?buildconfig.build.openshift.io\\s\"{app_name}}\"\\screated\n\\s?deploymentconfig.apps.openshift.io\\s\"{app_name}}\"\\screated\n\\s?service\\s\"{app_name}}\"\\screated\n-->\\sSuccess'
-        formatted_pattern = pattern.format(self.name)
-        print(formatted_pattern)
-        if re.search(formatted_pattern % self.name, create_new_app_output):
-            return True
 
-        else:
-            return False
+        for pattern in [f'imagestream.image.openshift.io\\s\"{self.name}\"\\screated',
+                        f'deploymentconfig.apps.openshift.io\\s\"{self.name}\"\\screated',
+                        f'service\\s\"{self.name}\"\\screated']:
+            print(pattern)
+            if not re.search(pattern, create_new_app_output):
+                return False
+
         build_config = self.get_build_config()
         if build_config is not None:
             print("build config is {}".format(build_config))

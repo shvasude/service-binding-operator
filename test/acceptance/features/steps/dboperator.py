@@ -10,25 +10,25 @@ class DbOperator():
     openshift = Openshift()
     cmd = Command()
 
-    operator_name = ""
-    operator_namespace = ""
+    name = ""
+    namespace = ""
     operator_source_name = "db-operators"
     operator_registry_namespace = "pmacik"
     operator_registry_channel = "stable"
     package_name = "db-operators"
 
     def __init__(self, name="postgresql-operator", namespace="openshift-operators"):
-        self.operator_name = name
-        self.operator_namespace = namespace
+        self.name = name
+        self.namespace = namespace
 
-    def is_running(self, wait_for_pod=False):
-        if wait_for_pod:
-            pod_name = self.openshift.wait_for_pod(self.operator_name, self.operator_namespace)
+    def is_running(self, wait=False):
+        if wait:
+            pod_name = self.openshift.wait_for_pod(self.name, self.namespace)
         else:
-            pod_name = self.openshift.search_pod_in_namespace(self.operator_name, self.operator_namespace)
+            pod_name = self.openshift.search_pod_in_namespace(self.name, self.namespace)
         if pod_name is not None:
-            operator_pod_status = self.openshift.check_pod_status(pod_name, self.operator_namespace)
-            print("The pod {} is running: {}".format(self.operator_name, operator_pod_status))
+            operator_pod_status = self.openshift.check_pod_status(pod_name, self.namespace)
+            print("The pod {} is running: {}".format(self.name, operator_pod_status))
             return operator_pod_status
         else:
             return False

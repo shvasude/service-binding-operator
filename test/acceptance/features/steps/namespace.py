@@ -15,15 +15,10 @@ class Namespace():
             flag = True
         elif re.search(r'.*project.project.openshift.io\s\"%s\"\salready exists' % self.name, create_namespace_output):
             flag = self.switch_to()
-        elif re.search(r'.*Already\son\sproject\s\"%s\"\son\sserver.*' % self.name, create_namespace_output):
-            flag = True
         else:
             print("Returned a different value {}".format(create_namespace_output))
             flag = False
-        if flag:
-            return self.is_present()
-        else:
-            return False
+        return flag
 
     def is_present(self):
         output, exit_code = self.cmd.run('oc get ns {}'.format(self.name))
