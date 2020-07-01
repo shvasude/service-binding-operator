@@ -1,5 +1,7 @@
 
 directories=${directories:-"./test/acceptance/features"}
+pass=0
+fail=0
 
 function prepare_venv() {
     python3 -m venv venv && source venv/bin/activate
