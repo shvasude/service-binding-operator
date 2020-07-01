@@ -7,6 +7,7 @@ from pyshould import should
 
 from servicebindingoperator import Servicebindingoperator
 from dboperator import DbOperator
+from postgres_db import PostgresDB
 from namespace import Namespace
 from nodejs_application import NodeJSApp
 
@@ -29,7 +30,7 @@ def given_db_operator_is_installed(context):
         print("DB operator is not installed, installing...")
         db_operator.install_operator_source() | should.be_truthy.desc("DB operator source installed")
         db_operator.install_operator_subscription() | should.be_truthy.desc("DB operator subscription installed")
-    db_operator.is_running(wait=True) | should.be_truthy.desc("DB operator installed")
+        db_operator.is_running(wait=True) | should.be_truthy.desc("DB operator installed")
     context.db_operator = db_operator
     print("PostgresSQL DB operator is running!!!")
 
@@ -58,20 +59,12 @@ def given_imported_nodejs_app_is_running(context, application_name):
 @given(u'DB "{db_name}" is running')
 def given_db_instance_is_running(context, db_name):
     namespace = context.namespace
-    db_operator = context.db_operator
 
-    (status, db_instance_name, connection_ip,
-     db_instance_pod_status) = db_operator.check_db_instance_status(db_name, namespace.name)
-    if status is True:
-        print("db instance name is {}, connection ip is {}, db instance pod status is {}".format(
-            db_instance_name, connection_ip, db_instance_pod_status))
-    else:
-        create_db_instance_status = db_operator.create_db_instance(
-            db_name)
-        create_db_instance_status | should.be_truthy
-        print("Postgres DB operator source is installed as the result is {}".format(
-            create_db_instance_status))
-        given_db_instance_is_running(context, db_name)
+    db = PostgresDB("db-demo", namespace.name)
+    if not db.is_running():
+        db.create() | should.be_truthy.desc("Postgres DB created")
+        db.is_running(wait=True) | should.be_truthy.desc("Postgres DB is running")
+    context.postgres_db = db
 
 
 @when(u'Service Binding Request is applied to connect the database and the application')

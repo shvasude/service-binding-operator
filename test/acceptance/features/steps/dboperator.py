@@ -51,37 +51,3 @@ class DbOperator():
         manifest | should_not.be_equal_to(None)
         manifest | should.equal(self.pkgManifest)
         return manifest
-
-    def create_db_instance(self, db_name):
-        cmd = 'make create-backing-db-instance'
-        create_db_instance_output = self.cmd.run(cmd)
-        if re.search(r'.*database.postgresql.baiju.dev/%s\s(created|unchanged)' % db_name, create_db_instance_output):
-            return True
-
-    def get_db_instance_name(self, project):
-        cmd = 'oc get db -n %s -o "jsonpath={.items[*].metadata.name}"' % project
-        self.db_instance = self.cmd.run(cmd)
-        self.db_instance | should_not.be_equal_to(None)
-        return self.db_instance
-
-    def get_connection_ip(self):
-        cmd = 'oc get db %s -o "jsonpath={.status.dbConnectionIP}"' % self.db_instance
-        self.connection_ip = self.cmd.run(cmd)
-        self.connection_ip | should_not.be_equal_to(None)
-        if re.match(r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}', self.connection_ip):
-            return True
-        else:
-            return False
-
-    def get_db_instance_pod_status(self, db_name, project):
-        return self.get_pod_status(db_name, project)
-
-    def check_db_instance_status(self, db_name, project):
-        db_instance_name = self.get_db_instance_name(project)
-        connection_ip = self.get_connection_ip()
-        db_instance_pod_status = self.get_db_instance_pod_status(
-            db_name, project)
-        if (db_instance_name == db_name) and (connection_ip is True) and (db_instance_pod_status == "Running"):
-            return True, db_instance_name, connection_ip, db_instance_pod_status
-        else:
-            return False, None, None, None
