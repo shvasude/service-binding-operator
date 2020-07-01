@@ -38,7 +38,7 @@ def given_db_operator_is_installed(context):
 def given_namespace_is_used(context, namespace_name):
     namespace = Namespace(namespace_name)
     if not namespace.is_present():
-        print("Namespace is not present, creating namespace {}...".format(namespace_name))
+        print("Namespace is not present, creating namespace: {}...".format(namespace_name))
         namespace.create() | should.be_truthy.desc("Namespace {} is created".format(namespace_name))
     print("Namespace {} is created!!!".format(namespace_name))
     context.namespace = namespace
