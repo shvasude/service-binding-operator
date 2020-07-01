@@ -16,18 +16,18 @@ Feature: Bind an application to a service
             apiVersion: apps.openshift.io/v1alpha1
             kind: ServiceBindingRequest
             metadata:
-            name: binding-request
+                name: binding-request
             spec:
-            applicationSelector:
-            resourceRef: nodejs-rest-http-crud
-            group: apps
-            version: v1
-            resource: deployments
-            backingServiceSelector:
-            group: postgresql.baiju.dev
-            version: v1alpha1
-            kind: Database
-            resourceRef: db-demo
+                applicationSelector:
+                    resourceRef: nodejs-rest-http-crud
+                    group: apps
+                    version: v1
+                    resource: deployments
+                backingServiceSelector:
+                    group: postgresql.baiju.dev
+                    version: v1alpha1
+                    kind: Database
+                    resourceRef: db-demo
             """
         Then application should be re-deployed
         And application should be connected to the DB "db-demo"
