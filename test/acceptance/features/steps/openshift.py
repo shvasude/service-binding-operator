@@ -1,7 +1,6 @@
 import re
 import time
 from pyshould import should
-
 from command import Command
 
 nodejs_app = "https://github.com/pmacik/nodejs-rest-http-crud"
@@ -39,8 +38,7 @@ spec:
 '''
 
     def get_pods_lst(self, namespace):
-        cmd = 'oc get pods -n %s -o "jsonpath={.items[*].metadata.name}"' % (namespace)
-        (output, exit_code) = self.cmd.run(cmd)
+        (output, exit_code) = self.cmd.run(f'oc get pods -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
         exit_code | should.be_equal_to(0)
         return output
 
@@ -80,12 +78,9 @@ spec:
         return None
 
     def check_pod_status(self, pod_name, namespace, wait_for_status="Running"):
-        if pod_name is not None:
-            cmd = 'oc get pod %s -n %s -o "jsonpath={.status.phase}"' % (pod_name, namespace)
-            status_found, output, exit_status = self.cmd.run_wait_for_status(cmd, wait_for_status)
-            return status_found
-        else:
-            return False
+        cmd = f'oc get pod {pod_name} -n {namespace} -o "jsonpath={{.status.phase}}"'
+        status_found, output, exit_status = self.cmd.run_wait_for_status(cmd, wait_for_status)
+        return status_found
 
     def oc_apply(self, yaml):
         (output, exit_code) = self.cmd.run("oc apply -f -", yaml)
@@ -130,73 +125,35 @@ spec:
                 start += interval
         return False
 
-    def is_nodejs_app_running(self, app_name, namespace):
-        build_flag = True
-        deployment_flag = True
-        (flag_for_build, build_name) = self.get_build_name(namespace)
-        (flag_for_deployment_name, deployment_name) = self.get_deployment_name(namespace)
-
-        if len(build_name) == 0:
-            build_flag = False
-        if len(deployment_name) == 0:
-            deployment_flag = False
-
-        print(build_flag + deployment_flag)
-
-        exp_build_pod_name = build_name + "-build"
-        nodejs_app_pod_status, exit_code = self.check_pod_status(exp_build_pod_name, namespace, wait_for_status="Succeeded")
-        if exit_code != 0:
-            print("Pod not found")
-
-        if nodejs_app_pod_status == "Succeeded" and (self.check_build_status(build_name) == "Complete" or self.check_for_deployment_status() == "True"):
-            return True
-        else:
-            return False
-
-    def create_new_app(self, app_name, namespace):
-        nodjs_app_arg = "nodejs~" + self.nodejs_app
-        cmd = "oc new-app {} --name {} -n {}".format(nodjs_app_arg, app_name, namespace)
-
-        (create_new_app_output, exit_code) = self.cmd.run(cmd)
-        exit_code | should.be_equal_to(0)
-
-        build_config = self.get_build_config()
-        build_config | should.contains(app_name)
-
-        (flag_for_build, build_name) = self.get_build_name(namespace)
-        if flag_for_build != 0:
-            return None
-
-        deployment_config = self.get_deployment_config(namespace)
-        deployment_config | should.be_equal_to(build_config)
-
-        self.is_nodejs_app_running(app_name, namespace)
-
-    def get_build_config(self):
-        cmd = 'oc get bc -o "jsonpath={.items[*].metadata.name}"'
-        (build_config, exit_code) = self.cmd.run(cmd)
+    def get_build_config(self, namespace):
+        (build_config, exit_code) = self.cmd.run(f'oc get bc -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
         exit_code | should.be_equal_to(0)
         return build_config
 
     def get_build_name(self, namespace):
-        flag = False
-        cmd_build_name = 'oc get build -n %s -o "jsonpath={.items[*].metadata.name}"' % namespace
-        (build_name, exit_code) = self.cmd.run(cmd_build_name)
-        if exit_code == 0:
-            flag = True
-        return flag, build_name
-
-    def check_build_status(self, build_name, wait_for_status="Complete"):
-        cmd_build_status = 'oc get build %s -o "jsonpath={{.status.phase}}"' % build_name
-        (build_status, exit_code) = self.cmd.run_wait_for_status(cmd_build_status, wait_for_status, 5, 300)
+        (build_name, exit_code) = self.cmd.run(f'oc get build -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
         exit_code | should.be_equal_to(0)
-        return build_status
+        return build_name
+
+    def check_build_status(self, namespace, wait_for_status="Complete"):
+        build_name = self.get_build_name(namespace)
+        cmd_build_status = f'oc get build {build_name} -o "jsonpath={{.status.phase}}"'
+        (status_found, build_status, exit_code) = self.cmd.run_wait_for_status(cmd_build_status, wait_for_status, 5, 300)
+        return status_found
 
     def get_deployment_config(self, namespace):
-        cmd = 'oc get dc -n %s -o "jsonpath={{.items[*].metadata.name}}"' % namespace
-        (deployment_config, exit_code) = self.cmd.run(cmd)
+        (deployment_config, exit_code) = self.cmd.run(f'oc get dc -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
         exit_code | should.be_equal_to(0)
         return deployment_config
+
+    def expose_service_route(self, service_name, namespace):
+        output, exit_code = self.cmd.run(f'oc expose svc/{service_name} -n {namespace} --name={service_name}')
+        return re.search(r'.*%s\sexposed' % service_name, output)
+
+    def get_route_host(self, name, namespace):
+        (output, exit_code) = self.cmd.run(f'oc get route {name} -n {namespace} -o "jsonpath={{.status.ingress[0].host}}"')
+        exit_code | should.be_equal_to(0)
+        return output
 
     def delete_deployment_config(self, deployment_config, namespace, db_name):
         cmd = 'oc delele dc {} -n {}'.format(deployment_config, namespace)
@@ -207,14 +164,13 @@ spec:
             return False
 
     def check_for_deployment_status(self, deployment_name, namespace, wait_for_status="True"):
-        deployment_status_cmd = 'oc get deployment %s -n %s -o "jsonpath={.status.conditions[*].status}"' % (deployment_name, namespace)
+        deployment_status_cmd = f'oc get deployment {deployment_name} -n {namespace} -o "jsonpath={{.status.conditions[*].status}}"'
         deployment_status, exit_code = self.cmd.run_check_for_status(deployment_status_cmd, wait_for_status, 5, 300)
         exit_code | should.be_equal_to(0)
         return deployment_status
 
     def get_deployment_name(self, namespace):
-        deployment_cmd = 'oc get deployment -n %s -o "jsonpath={.items[*].metadata.name}"' % namespace
-        deployment, exit_code = self.cmd.run(deployment_cmd)
+        deployment, exit_code = self.cmd.run('oc get deployment -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
         if exit_code == 0:
             flag = True
         return flag, deployment

@@ -54,7 +54,7 @@ def given_imported_nodejs_app_is_running(context, application_name):
         application.install() | should.be_truthy.desc("Application is installed")
         application.is_running(wait=True) | should.be_truthy.desc("Application is running")
     print("Nodejs application is running!!!")
-    application.get_db_name_from_api() | should.be_equal_to("N/A")
+    application.get_db_name_from_api(namespace.name) | should.be_equal_to("N/A")
 
 
 @given(u'DB "{db_name}" is running')

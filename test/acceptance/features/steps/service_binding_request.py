@@ -1,7 +1,6 @@
 import re
 
 from openshift import Openshift
-from pyshould import should
 
 
 class ServiceBindingRequest(object):
