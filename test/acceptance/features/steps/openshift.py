@@ -128,22 +128,6 @@ spec:
                 start += interval
         return False
 
-    def get_build_config(self, namespace):
-        (build_config, exit_code) = self.cmd.run(f'oc get bc -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
-        exit_code | should.be_equal_to(0)
-        return build_config
-
-    def get_build_name(self, namespace):
-        (build_name, exit_code) = self.cmd.run(f'oc get build -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
-        exit_code | should.be_equal_to(0)
-        return build_name
-
-    def check_build_status(self, namespace, wait_for_status="Complete"):
-        build_name = self.get_build_name(namespace)
-        cmd_build_status = f'oc get build {build_name} -o "jsonpath={{.status.phase}}"'
-        (status_found, build_status, exit_code) = self.cmd.run_wait_for_status(cmd_build_status, wait_for_status, 5, 300)
-        return status_found
-
     def expose_service_route(self, service_name, namespace):
         output, exit_code = self.cmd.run(f'oc expose svc/{service_name} -n {namespace} --name={service_name}')
         return re.search(r'.*%s\sexposed' % service_name, output)
@@ -153,36 +137,17 @@ spec:
         exit_code | should.be_equal_to(0)
         return output
 
-    def delete_deployment_config(self, deployment_config, namespace, db_name):
-        cmd = 'oc delele dc {} -n {}'.format(deployment_config, namespace)
-        delete_output = self.cmd.run(cmd)
-        if re.search(r'.*database.postgresql.baiju.dev/%s\sdeleted' % db_name, delete_output):
-            return True
-        else:
-            return False
-
     def check_for_deployment_status(self, deployment_name, namespace, wait_for_status="True"):
         deployment_status_cmd = f'oc get deployment {deployment_name} -n {namespace} -o "jsonpath={{.status.conditions[*].status}}"'
-        deployment_status, exit_code = self.cmd.run_check_for_status(deployment_status_cmd, wait_for_status, 5, 300)
+        deployment_status, exit_code = self.cmd.run_wait_for_status(deployment_status_cmd, wait_for_status, 5, 300)
         exit_code | should.be_equal_to(0)
         return deployment_status
 
-    def get_deployment_name(self, namespace):
-        deployment, exit_code = self.cmd.run('oc get deployment -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
-        if exit_code == 0:
-            flag = True
-        return flag, deployment
-
-    def get_deployment_env_info(self, app_name, namespace):
-        env_cmd = 'oc get deploy %s -n %s "jsonpath={{.spec.template.spec.containers[0].env}}"' % (app_name, namespace)
+    def get_deployment_env_info(self, name, namespace):
+        env_cmd = f'oc get deploy {name} -n {namespace} "jsonpath={{.spec.template.spec.containers[0].env}}"'
         env, exit_code = self.cmd.run(env_cmd)
         exit_code | should.be_equal_to(0)
-        env_from_cmd = 'oc get deploy %s -n %s "jsonpath={{.spec.template.spec.containers[0].envFrom}}"' % (app_name, namespace)
+        env_from_cmd = f'oc get deploy {name} -n {namespace} "jsonpath={{.spec.template.spec.containers[0].envFrom}}"'
         env_from, exit_code = self.cmd.run(env_from_cmd)
         exit_code | should.be_equal_to(0)
         return env, env_from
-
-    def use_deployment(self, application_name, deployment_config, namespace):
-        self.delete_deployment_config(deployment_config, namespace) | should.be_truthy
-        self.oc_apply("deployment.yaml")
-        return self.get_deployment_info(application_name, namespace)
