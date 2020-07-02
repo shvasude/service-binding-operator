@@ -51,6 +51,7 @@ def given_imported_nodejs_app_is_running(context, application_name):
     namespace = context.namespace
     application = NodeJSApp(application_name, namespace.name)
     if not application.is_running():
+        print("application is not running, trying to import it")
         application.install() | should.be_truthy.desc("Application is installed")
         application.is_running(wait=True) | should.be_truthy.desc("Application is running")
     print("Nodejs application is running!!!")

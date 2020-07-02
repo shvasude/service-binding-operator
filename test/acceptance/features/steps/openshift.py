@@ -42,35 +42,32 @@ spec:
         exit_code | should.be_equal_to(0)
         return output
 
-    def search_item_in_lst(self, lst, search_item):
+    def search_item_in_lst(self, lst, search_pattern):
         lst_arr = lst.split(" ")
         for item in lst_arr:
-            if search_item in item:
-                if "-build" in search_item:
-                    print("item matched {}".format(item))
-                    return item
-                print("item matched {}".format(item))
+            if re.fullmatch(search_pattern, item) is not None:
+                print(f"item matched {item}")
                 return item
         print("Given item not matched from the list of pods")
         return None
 
-    def search_pod_in_namespace(self, pod_name_part, namespace):
+    def search_pod_in_namespace(self, pod_name_pattern, namespace):
         pods_lst = self.get_pods_lst(namespace)
         if len(pods_lst) != 0:
             print("Pod list are {}".format(pods_lst))
-            return self.search_item_in_lst(pods_lst, pod_name_part)
+            return self.search_item_in_lst(pods_lst, pod_name_pattern)
         else:
             print('Pods list is empty under namespace - {}'.format(namespace))
             return None
 
-    def wait_for_pod(self, pod_name_part, namespace, interval=5, timeout=60):
-        pod = self.search_pod_in_namespace(pod_name_part, namespace)
+    def wait_for_pod(self, pod_name_pattern, namespace, interval=5, timeout=60):
+        pod = self.search_pod_in_namespace(pod_name_pattern, namespace)
         start = 0
         if pod is not None:
             return pod
         else:
             while ((start + interval) <= timeout):
-                pod = self.search_pod_in_namespace(pod_name_part, namespace)
+                pod = self.search_pod_in_namespace(pod_name_pattern, namespace)
                 if pod is not None:
                     return pod
                 time.sleep(interval)

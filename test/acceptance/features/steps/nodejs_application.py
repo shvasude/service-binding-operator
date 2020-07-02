@@ -9,6 +9,8 @@ class NodeJSApp(object):
     api_end_point = 'http://{route}/api/status/dbNameCM'
     openshift = Openshift()
 
+    pod_name_pattern = "{name}.*$(?<!-build)"
+
     name = ""
     namespace = ""
 
@@ -19,26 +21,26 @@ class NodeJSApp(object):
 
     def is_running(self, wait=False):
         build_status_flag = False
-        deployment_config_flag = False
+        deployment_flag = False
 
         if wait:
-            pod_name = self.openshift.wait_for_pod(self.name, self.namespace)
+            pod_name = self.openshift.wait_for_pod(self.pod_name_pattern.format(name=self.name), self.namespace, timeout=180)
         else:
-            pod_name = self.openshift.search_pod_in_namespace(self.name, self.namespace)
+            pod_name = self.openshift.search_pod_in_namespace(self.pod_name_pattern.format(name=self.name), self.namespace)
 
         if pod_name is not None:
-            application_pod_status = self.openshift.check_pod_status(pod_name, self.namespace, wait_for_status="Succeeded")
-            print("The pod {} is running: {}".format(self.name, application_pod_status))
+            application_pod_status = self.openshift.check_pod_status(pod_name, self.namespace, wait_for_status="Running")
+            print("The pod {} is running: {}".format(pod_name, application_pod_status))
 
             if self.openshift.check_build_status(self.namespace):
                 build_status_flag = True
 
-            deployment_config = self.openshift.get_deployment_config(self.namespace)
-            if deployment_config is not None:
-                print("deployment config is {}".format(deployment_config))
-                deployment_config_flag = True
+            deployment = self.openshift.get_deployment_config(self.namespace)
+            if deployment is not None:
+                print("deployment is {}".format(deployment))
+                deployment_flag = True
 
-            if application_pod_status and build_status_flag and deployment_config_flag:
+            if application_pod_status and build_status_flag and deployment_flag:
                 return True
             else:
                 return False
@@ -52,7 +54,7 @@ class NodeJSApp(object):
         if exit_code != 0:
             return False
         for pattern in [f'imagestream.image.openshift.io\\s\"{self.name}\"\\screated',
-                        f'deploymentconfig.apps.openshift.io\\s\"{self.name}\"\\screated',
+                        f'deployment.apps\\s\"{self.name}\"\\screated',
                         f'service\\s\"{self.name}\"\\screated']:
             if not re.search(pattern, create_new_app_output):
                 return False
