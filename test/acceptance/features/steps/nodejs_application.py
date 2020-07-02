@@ -27,7 +27,6 @@ class NodeJSApp(object):
             pod_name = self.openshift.search_pod_in_namespace(self.name, self.namespace)
 
         if pod_name is not None:
-            pod_name = pod_name + "-build"
             application_pod_status = self.openshift.check_pod_status(pod_name, self.namespace, wait_for_status="Succeeded")
             print("The pod {} is running: {}".format(self.name, application_pod_status))
 
