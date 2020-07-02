@@ -10,6 +10,7 @@ from dboperator import DbOperator
 from postgres_db import PostgresDB
 from namespace import Namespace
 from nodejs_application import NodeJSApp
+from service_binding_request import ServiceBindingRequest
 
 
 @given('Service Binding Operator is running')
@@ -69,9 +70,10 @@ def given_db_instance_is_running(context, db_name):
 
 @when(u'Service Binding Request is applied to connect the database and the application')
 def when_sbr_is_applied(context):
-    print("SBO YAML: {}".format(context.text))
-    raise NotImplementedError(
-        u'STEP: When Service Binding Request is applied to connect the database and the application')
+    sbr_yaml = context.text
+    print("SBO YAML: {}".format(sbr_yaml))
+    sbr = ServiceBindingRequest()
+    sbr.create(sbr_yaml) | should.be_truthy.desc("Service Binding Request Created")
 
 
 @then(u'application should be re-deployed')
