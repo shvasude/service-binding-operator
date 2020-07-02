@@ -35,7 +35,7 @@ class NodeJSApp(object):
             if self.openshift.check_build_status(self.namespace):
                 build_status_flag = True
 
-            deployment = self.openshift.get_deployment_config(self.namespace)
+            deployment = self.openshift.search_resource_in_namespace("deployments", f"{self.name}.*", self.namespace)
             if deployment is not None:
                 print("deployment is {}".format(deployment))
                 deployment_flag = True

@@ -37,8 +37,11 @@ spec:
     startingCSV: '{csv_version}'
 '''
 
-    def get_pods_lst(self, namespace):
-        (output, exit_code) = self.cmd.run(f'oc get pods -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
+    def get_pod_lst(self, namespace):
+        return self.get_resource_lst("pods", namespace)
+
+    def get_resource_lst(self, resource_plural, namespace):
+        (output, exit_code) = self.cmd.run(f'oc get {resource_plural} -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
         exit_code | should.be_equal_to(0)
         return output
 
@@ -52,12 +55,15 @@ spec:
         return None
 
     def search_pod_in_namespace(self, pod_name_pattern, namespace):
-        pods_lst = self.get_pods_lst(namespace)
-        if len(pods_lst) != 0:
-            print("Pod list are {}".format(pods_lst))
-            return self.search_item_in_lst(pods_lst, pod_name_pattern)
+        return self.search_resource_in_namespace("pods", pod_name_pattern, namespace)
+
+    def search_resource_in_namespace(self, resource_plural, name_pattern, namespace):
+        lst = self.get_resource_lst(resource_plural, namespace)
+        if len(lst) != 0:
+            print("Resource list is {}".format(lst))
+            return self.search_item_in_lst(lst, name_pattern)
         else:
-            print('Pods list is empty under namespace - {}'.format(namespace))
+            print('Resource list is empty under namespace - {}'.format(namespace))
             return None
 
     def wait_for_pod(self, pod_name_pattern, namespace, interval=5, timeout=60):
@@ -137,11 +143,6 @@ spec:
         cmd_build_status = f'oc get build {build_name} -o "jsonpath={{.status.phase}}"'
         (status_found, build_status, exit_code) = self.cmd.run_wait_for_status(cmd_build_status, wait_for_status, 5, 300)
         return status_found
-
-    def get_deployment_config(self, namespace):
-        (deployment_config, exit_code) = self.cmd.run(f'oc get dc -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
-        exit_code | should.be_equal_to(0)
-        return deployment_config
 
     def expose_service_route(self, service_name, namespace):
         output, exit_code = self.cmd.run(f'oc expose svc/{service_name} -n {namespace} --name={service_name}')
