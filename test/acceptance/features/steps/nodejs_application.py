@@ -1,12 +1,13 @@
 from openshift import Openshift
 from command import Command
 import re
+import requests
 
 
 class NodeJSApp(object):
 
     nodejs_app = "https://github.com/pmacik/nodejs-rest-http-crud"
-    api_end_point = 'http://{route}/api/status/dbNameCM'
+    api_end_point = 'http://{route_url}/api/status/dbNameCM'
     openshift = Openshift()
 
     pod_name_pattern = "{name}.*$(?<!-build)"
@@ -20,7 +21,6 @@ class NodeJSApp(object):
         self.namespace = namespace
 
     def is_running(self, wait=False):
-        build_status_flag = False
         deployment_flag = False
 
         if wait:
@@ -32,15 +32,12 @@ class NodeJSApp(object):
             application_pod_status = self.openshift.check_pod_status(pod_name, self.namespace, wait_for_status="Running")
             print("The pod {} is running: {}".format(pod_name, application_pod_status))
 
-            if self.openshift.check_build_status(self.namespace):
-                build_status_flag = True
-
             deployment = self.openshift.search_resource_in_namespace("deployments", f"{self.name}.*", self.namespace)
             if deployment is not None:
                 print("deployment is {}".format(deployment))
                 deployment_flag = True
 
-            if application_pod_status and build_status_flag and deployment_flag:
+            if application_pod_status and deployment_flag:
                 return True
             else:
                 return False
@@ -65,6 +62,8 @@ class NodeJSApp(object):
 
     def get_db_name_from_api(self, namespace):
         route_url = self.openshift.get_route_host(self.name, self.namespace)
-        print(route_url)
-        # return util.get_data_from_api(route_url)
-        return None
+        db_name = requests.get(url=self.api_end_point.format(route_url=route_url))
+        if db_name.status_code == 200:
+            return db_name.text
+        else:
+            return None
