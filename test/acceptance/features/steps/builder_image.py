@@ -38,9 +38,13 @@ class BuilderImage(object):
         (import_output, exit_code) = self.cmd.run(cmd_import)
         if exit_code != 0:
             return False
+        if re.search(f'.*{self.image}\simported', import_output) is None:
+            return False
         spec = '{"spec": {"tags": [{"name" : "{self.tag}", "annotations": {"tags": "builder"}}]}}'
         cmd_patch = f'oc patch is {self.image} -n {self.namespace} -p \'{spec}\''
         (patch_output, exit_code) = self.cmd.run(cmd_patch)
         if exit_code != 0:
             return False
-        return re.search(r'.*imagestream.image.openshift.io/%s\spatched)' % self.quarkus_image_stream, patch_output)
+        if re.search(f'.*{self.image}\spatched', patch_output) is None:
+            return False
+        return True

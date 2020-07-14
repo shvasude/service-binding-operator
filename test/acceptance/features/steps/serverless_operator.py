@@ -15,6 +15,7 @@ class ServerlessOperator():
     namespace = ""
     operator_source_name = "redhat-operators"
     operator_registry_channel = "techpreview"
+    knative_serving = "knative-serving"
 
     def __init__(self, name="serverless-operator", namespace="openshift-operators"):
         self.name = name
@@ -33,14 +34,14 @@ metadata:
   namespace: knative-serving
 '''
 
-    def is_running(self, wait=False):
+    def is_running(self, wait=False, name="knative-serving-operator"):
         if wait:
-            pod_name = self.openshift.wait_for_pod(self.pod_name_pattern.format(name=self.name), self.namespace)
+            pod_name = self.openshift.wait_for_pod(self.pod_name_pattern.format(name=name), self.namespace)
         else:
-            pod_name = self.openshift.search_pod_in_namespace(self.pod_name_pattern.format(name=self.name), self.namespace)
+            pod_name = self.openshift.search_pod_in_namespace(self.pod_name_pattern.format(name=name), self.namespace)
         if pod_name is not None:
             operator_pod_status = self.openshift.check_pod_status(pod_name, self.namespace)
-            print("The pod {} is running: {}".format(self.name, operator_pod_status))
+            print("The pod {} is running: {}".format(name, operator_pod_status))
             return operator_pod_status
         else:
             return False
@@ -51,7 +52,16 @@ metadata:
             return True
         return False
 
-    def is_knative_serving_object_present(self):
-        oc_output = self.openshift.oc_apply(self.serving_template.format)
-        print(oc_output)
+    def is_knative_serving_present(self):
+        cmd = f'oc get ns {self.knative_serving}'
+        output, exit_status = self.cmd.run(cmd)
+        if exit_status != 0:
+            return False
+        return True
+
+    def install_as_knative_serving(self):
+        serving_output = self.openshift.oc_apply(self.serving_template)
+        for pattern in [f'namespace/{self.knative_serving}\screated', f'knativeserving.serving.knative.dev/{self.knative_serving}\screated']:
+            if not re.search(pattern, serving_output):
+                return False
         return True

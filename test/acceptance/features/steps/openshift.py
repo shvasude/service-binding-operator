@@ -159,6 +159,8 @@ spec:
         operator_subscription = self.operator_subscription_yaml_template.format(
             name=package_name, operator_source_name=operator_source_name,
             channel=channel, csv_version=self.get_current_csv(package_name, operator_source_name, channel))
+        import pdb
+        pdb.set_trace()
         return self.oc_apply(operator_subscription)
 
     def wait_for_package_manifest(self, package_name, operator_source_name, operator_channel, interval=5, timeout=60):

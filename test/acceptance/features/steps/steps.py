@@ -197,8 +197,7 @@ def given_serverless_operator_is_running(context):
     """
     Checks if the serverless operator is up and running
     """
-    context.namespace | should_not.be_none.desc("Namespace set in context")
-    serverless_operator = ServerlessOperator(namespace=context.namespace.name)
+    serverless_operator = ServerlessOperator()
     if not serverless_operator.is_running():
         print("Serverless operator is not installed, installing...")
         serverless_operator.install_operator_subscription() | should.be_truthy.desc(
@@ -226,14 +225,18 @@ def given_knative_serving_object_is_present(context):
     creates a KnativeServing object to install Knative Serving using the OpenShift Serverless Operator.
     """
     serverless_operator = context.serverless_operator
-    serverless_operator.is_knative_serving_object_present() | should.be_truthy.desc("Service Binding Operator is running")
-    print("Service binding operator is running!!!")
+    if not serverless_operator.is_knative_serving_present():
+        print("knative service is not present, trying to create knative service namespace")
+        serverless_operator.install_as_knative_serving() | should.be_truthy.desc("knative service is created")
+        serverless_operator.is_knative_serving_present() | should.be_truthy.desc("knative service is present")
+    print("knative service is present!!!")
 
 
 @given(u'Imported Quarkus application "{application_name}" is running  as Knative service')
 def given_quarkus_application_is_running_as_knative_service(context, application_name):
     context.namespace | should_not.be_none.desc("Namespace set in context")
     quarkus_application = QuarkusApplication()
+
     if not quarkus_application.is_running_as_knative_service():
         print("application is not running, trying to import it")
         quarkus_application.install() | should.be_truthy.desc("Quarkus application is installed")
