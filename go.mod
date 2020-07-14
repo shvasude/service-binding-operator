@@ -15,7 +15,11 @@ require (
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20200130164400-12c06cfc05c4
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
+<<<<<<< HEAD
 	github.com/stretchr/testify v1.6.1
+=======
+	github.com/stretchr/testify v1.4.0
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.17.1
 	k8s.io/apiextensions-apiserver v0.17.1

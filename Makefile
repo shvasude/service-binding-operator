@@ -161,7 +161,11 @@ TEST_ACCEPTANCE_START_SBO ?= local
 
 .PHONY: lint
 ## Runs linters on Go code files and YAML files - DISABLED TEMPORARILY
+<<<<<<< HEAD
 lint: setup-venv lint-go-code lint-yaml lint-python-code
+=======
+lint: setup-venv lint-go-code lint-yaml
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
 
 YAML_FILES := $(shell find . -path ./vendor -prune -o -type f -regex ".*y[a]ml" -print)
 .PHONY: lint-yaml
@@ -180,11 +184,14 @@ lint-go-code: $(GOLANGCI_LINT_BIN)
 $(GOLANGCI_LINT_BIN):
 	$(Q)curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./out v1.18.0
 
+<<<<<<< HEAD
 ## -- Check the python code
 .PHONY: lint-python-code
 lint-python-code:
 	$(Q)./hack/check-python/lint-python-code.sh
 
+=======
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
 .PHONY: setup-venv
 ## Setup virtual environment
 setup-venv:
@@ -196,7 +203,11 @@ setup-venv:
 
 # Generate namespace name for test
 out/test-namespace:
+<<<<<<< HEAD
 	@echo -n "test-namespace-$(shell uuidgen | tr '[:upper:]' '[:lower:]' | head -c 8)" > $(OUTPUT_DIR)/test-namespace
+=======
+	@echo -n "test-namespace-$(shell uuidgen | tr '[:upper:]' '[:lower:]')" > $(OUTPUT_DIR)/test-namespace
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
 
 .PHONY: get-test-namespace
 get-test-namespace: out/test-namespace
@@ -227,8 +238,12 @@ test-e2e: e2e-setup deploy-crds
 		operator-sdk --verbose test local ./test/e2e \
 			--namespace $(TEST_NAMESPACE) \
 			--up-local \
+<<<<<<< HEAD
 			--skip-cleanup-error=true \
 			--go-test-flags "-timeout=110m" \
+=======
+			--go-test-flags "-timeout=15m" \
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
 			--local-operator-flags "$(ZAP_FLAGS)" \
 			$(OPERATOR_SDK_EXTRA_ARGS) \
 			| tee $(LOGS_DIR)/e2e/test-e2e.log
@@ -276,6 +291,7 @@ test-unit-with-coverage:
 .PHONY: test-acceptance-setup
 ## Setup the environment for the acceptance tests
 ifeq ($(TEST_ACCEPTANCE_START_SBO), local)
+<<<<<<< HEAD
 test-acceptance-setup:
 	$(Q)echo "Starting local SBO instance"
 	$(eval TEST_ACCEPTANCE_SBO_STARTED := $(shell OPERATOR_NAMESPACE="$(TEST_NAMESPACE)" ZAP_FLAGS="$(ZAP_FLAGS)" ./hack/deploy-sbo-local.sh))
@@ -296,6 +312,23 @@ test-acceptance: e2e-setup set-test-namespace deploy-clean deploy-rbac deploy-cr
 		TEST_ACCEPTANCE_SBO_STARTED=$(TEST_ACCEPTANCE_SBO_STARTED) \
 		TEST_NAMESPACE=$(TEST_NAMESPACE) \
 		behave -v --no-capture --no-capture-stderr --tags="~@disabled" test/acceptance/features
+=======
+test-acceptance-setup: 
+	$(Q)Starting local SBO instance
+	$(eval TEST_ACCEPTANCE_SBO_STARTED := $(shell ./hack/deploy-sbo-local.sh))
+else ifeq ($(TEST_ACCEPTANCE_START_SBO), operator-hub)
+test-acceptance-setup: 
+	$(eval TEST_ACCEPTANCE_SBO_STARTED := $(shell ./hack/deploy-sbo-operator-hub.sh))
+endif
+
+.PHONY: test-acceptance
+## Runs acceptance tests
+test-acceptance: test-acceptance-setup
+	$(Q)echo "Running acceptance tests"
+	$(Q)TEST_ACCEPTANCE_START_SBO=$(TEST_ACCEPTANCE_START_SBO) \
+		TEST_ACCEPTANCE_SBO_STARTED=$(TEST_ACCEPTANCE_SBO_STARTED) \
+		behave -v --no-capture --no-capture-stderr test/acceptance/features
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
 	$(Q)kill $(TEST_ACCEPTANCE_SBO_STARTED)
 
 .PHONY: test
@@ -383,7 +416,12 @@ push-image: build-image
 .PHONY: local
 ## Local: Run operator locally
 local: deploy-clean deploy-rbac deploy-crds
+<<<<<<< HEAD
 	$(Q)operator-sdk --verbose run --local --operator-flags "$(ZAP_FLAGS)"
+=======
+	#$(Q)WATCH_NAMESPACE="" SERVICE_BINDING_OPERATOR_DISABLE_ELECTION=1 operator-sdk --verbose run --local --operator-flags "$(ZAP_FLAGS)"	
+	$(Q)WATCH_NAMESPACE="" operator-sdk --verbose run --local --operator-flags "$(ZAP_FLAGS)"
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
 
 .PHONY: deploy-rbac
 ## Deploy-RBAC: Setup service account and deploy RBAC
@@ -513,3 +551,18 @@ validate-release: setup-venv
 	$(Q)$(OUTPUT_DIR)/venv3/bin/pip install yq==2.10.0
 	BUNDLE_VERSION=$(BASE_BUNDLE_VERSION) CHANNEL="alpha" ./hack/validate-release.sh
 
+<<<<<<< HEAD
+=======
+
+## -- Target to check style of code
+.PHONY: check-code-style
+check-code-style:
+	$(eval CHECK_PYTHON=./hack/check-python)
+	$(Q)$(CHECK_PYTHON)/detect-common-errors.sh
+	$(Q)$(CHECK_PYTHON)/detect-dead-code.sh
+	$(Q)$(CHECK_PYTHON)/check-PEP8-style.sh
+	#$(Q)$(CHECK_PYTHON)/check-python-docstyle.sh
+	$(Q)$(CHECK_PYTHON)/measure-cyclomatic-complexity.sh
+	$(Q)$(CHECK_PYTHON)/measure-maintainability-index.sh
+
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06

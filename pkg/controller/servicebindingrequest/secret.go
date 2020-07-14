@@ -27,6 +27,7 @@ func (s *secret) buildResourceClient() dynamic.ResourceInterface {
 
 // createOrUpdate will take informed payload and either create a new secret or update an existing
 // one. It can return error when Kubernetes client does.
+<<<<<<< HEAD
 func (s *secret) createOrUpdate(payload map[string][]byte, ownerReference metav1.OwnerReference) (*unstructured.Unstructured, error) {
 	logger := s.logger.WithValues("Namespace", s.ns, "Name", s.name)
 	secretObj := &corev1.Secret{
@@ -34,6 +35,14 @@ func (s *secret) createOrUpdate(payload map[string][]byte, ownerReference metav1
 			Namespace:       s.ns,
 			Name:            s.name,
 			OwnerReferences: []metav1.OwnerReference{ownerReference},
+=======
+func (s *secret) createOrUpdate(payload map[string][]byte) (*unstructured.Unstructured, error) {
+	logger := s.logger.WithValues("Namespace", s.ns, "Name", s.name)
+	secretObj := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: s.ns,
+			Name:      s.name,
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
 		},
 		Data: payload,
 	}
@@ -60,6 +69,15 @@ func (s *secret) createOrUpdate(payload map[string][]byte, ownerReference metav1
 	return u, nil
 }
 
+<<<<<<< HEAD
+=======
+// commit will store informed data as a secret, commit it against the API server. It can forward
+// errors from custom environment parser component, or from the API server itself.
+func (s *secret) commit(payload map[string][]byte) (*unstructured.Unstructured, error) {
+	return s.createOrUpdate(payload)
+}
+
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
 // get an unstructured object from the secret handled by this component. It can return errors in case
 // the API server does.
 func (s *secret) get() (*unstructured.Unstructured, bool, error) {
@@ -71,6 +89,19 @@ func (s *secret) get() (*unstructured.Unstructured, bool, error) {
 	return u, u != nil, nil
 }
 
+<<<<<<< HEAD
+=======
+// delete the secret represented by this component. It can return error when the API server does.
+func (s *secret) delete() error {
+	resourceClient := s.buildResourceClient()
+	err := resourceClient.Delete(s.name, &metav1.DeleteOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+	return nil
+}
+
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
 // newSecret instantiate a new Secret.
 func newSecret(
 	client dynamic.Interface,

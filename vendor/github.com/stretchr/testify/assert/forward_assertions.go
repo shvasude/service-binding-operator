@@ -13,4 +13,8 @@ func New(t TestingT) *Assertions {
 	}
 }
 
+<<<<<<< HEAD
 //go:generate sh -c "cd ../_codegen && go build && cd - && ../_codegen/_codegen -output-package=assert -template=assertion_forward.go.tmpl -include-format-funcs"
+=======
+//go:generate go run ../_codegen/main.go -output-package=assert -template=assertion_forward.go.tmpl -include-format-funcs
+>>>>>>> 245092a0fa73e9b71cfe2cc7cf10cc382be32c06
