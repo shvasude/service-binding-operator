@@ -36,6 +36,40 @@ spec:
     sourceNamespace: openshift-marketplace
     startingCSV: '{csv_version}'
 '''
+        self.image_stream_template = '''
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+    name: {name}
+'''
+        self.build_config_template = '''
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: knative-app
+  namespace: test-namespace-a
+spec:
+  source:
+    git:
+      ref: master
+      uri: https://github.com/sbose78/using-spring-data-jpa-quarkus
+    type: Git
+  strategy:
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: ubi-quarkus-native-s2i:19.1.1
+        namespace: openshift
+    type: Source
+  output:
+    to:
+      kind: ImageStreamTag
+      name: knative-app:latest
+  triggers:
+    - type: ConfigChange
+'''
 
     def get_pod_lst(self, namespace):
         return self.get_resource_lst("pods", namespace)
@@ -176,3 +210,16 @@ spec:
         if exit_code == 0:
             return output.rstrip("\n")
         return None
+
+    def create_image_stream(self, name, registry_namespace):
+        image_stream = self.image_stream_template.format(name=name)
+        return self.oc_apply(image_stream)
+
+    def get_docker_image_repository(self, name, namespace):
+        (output, exit_code) = self.cmd.run(f'oc get is {name} -n {namespace} -o "jsonpath={{.status.dockerImageRepository}}"')
+        exit_code | should.be_equal_to(0)
+        return output
+
+    def create_build_config(self, name, application_source, image_repository):
+        build_config_yaml = self.build_config_template.format(name=name, application_source=application_source, image_repository=image_repository)
+        return self.oc_apply(build_config_yaml)

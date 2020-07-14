@@ -15,9 +15,13 @@ from postgres_db import PostgresDB
 from namespace import Namespace
 from nodejs_application import NodeJSApp
 from service_binding_request import ServiceBindingRequest
-
+from serverless_operator import ServerlessOperator
+from quarkus_application import QuarkusApplication
+from builder_image import BuilderImage
 
 # STEP
+
+
 @given(u'Namespace "{namespace_name}" is used')
 def given_namespace_is_used(context, namespace_name):
     namespace = Namespace(namespace_name)
@@ -186,3 +190,54 @@ def then_sbo_jq_is(context, jq_expression, sbr_name, json_value_regex):
     result = openshift.get_resource_info_by_jq("sbr", sbr_name, context.namespace.name, jq_expression)
     result | should_not.be_none.desc("jq result")
     re.fullmatch(json_value_regex, result) | should_not.be_none.desc("SBO jq result matches \"{json_value_regex}\"")
+
+
+@given('Openshift Serverless Operator is running')
+def given_serverless_operator_is_running(context):
+    """
+    Checks if the serverless operator is up and running
+    """
+    context.namespace | should_not.be_none.desc("Namespace set in context")
+    serverless_operator = ServerlessOperator(namespace=context.namespace.name)
+    if not serverless_operator.is_running():
+        print("Serverless operator is not installed, installing...")
+        serverless_operator.install_operator_subscription() | should.be_truthy.desc(
+            "serverless operator subscription installed")
+        serverless_operator.is_running(wait=True) | should.be_truthy.desc("serverless operator installed")
+    print("Serverless operator is running!!!")
+    context.serverless_operator = serverless_operator
+
+
+@given('Quarkus s2i builder image is present')
+def given_quarkus_builder_image_is_present(context):
+    """
+    Checks if quarkus s2i builder image is present
+    """
+    builder_image = BuilderImage()
+    if not builder_image.is_present():
+        builder_image.import_and_patch() | should.be_truthy.desc("Quarkus image is imported from image registry and patched to builder")
+        builder_image.is_present() | should.be_truthy.desc("Quarkus image is present")
+    print("Quarkus s2i builder image is present!!!")
+
+
+@given('Knative serving is running')
+def given_knative_serving_object_is_present(context):
+    """
+    creates a KnativeServing object to install Knative Serving using the OpenShift Serverless Operator.
+    """
+    serverless_operator = context.serverless_operator
+    serverless_operator.is_knative_serving_object_present() | should.be_truthy.desc("Service Binding Operator is running")
+    print("Service binding operator is running!!!")
+
+
+@given(u'Imported Quarkus application "{application_name}" is running  as Knative service')
+def given_quarkus_application_is_running_as_knative_service(context, application_name):
+    context.namespace | should_not.be_none.desc("Namespace set in context")
+    quarkus_application = QuarkusApplication()
+    if not quarkus_application.is_running_as_knative_service():
+        print("application is not running, trying to import it")
+        quarkus_application.install() | should.be_truthy.desc("Quarkus application is installed")
+        quarkus_application.is_running_as_knative_service(wait=True) | should.be_truthy.desc("Quarkus application is running")
+    print("Quarkus application is running!!!")
+    # application.get_db_name_from_api() | should_not.be_none
+    # context.quarkus_app = application

@@ -216,3 +216,39 @@ Feature: Bind an application to a service
         And jq ".status.conditions[] | select(.type=="CollectionReady").reason" of Service Binding Request "binding-request-missing-app" should be changed to "EmptyApplicationSelector"
         And jq ".status.conditions[] | select(.type=="InjectionReady").status" of Service Binding Request "binding-request-missing-app" should be changed to "False"
         And jq ".status.conditions[] | select(.type=="InjectionReady").reason" of Service Binding Request "binding-request-missing-app" should be changed to "EmptyApplicationSelector"
+
+    Scenario: Bind an imported quarkus app which is deployed as knative service to PostgreSQL database
+        Given Openshift Serverless Operator is running
+        * Quarkus s2i builder image is present
+        * Knative serving is running
+        * DB "db-demo-knative" is running
+        * Imported Quarkus application "knative-app" is running
+        When Service Binding Request is applied to connect the database and the application
+            """
+            ---
+            apiVersion: apps.openshift.io/v1alpha1
+            kind: ServiceBindingRequest
+            metadata:
+                name: binding-request
+            spec:
+                applicationSelector:
+                    group: serving.knative.dev
+                    version: v1beta1
+                    resource: services
+                    resourceRef: knative-app
+                backingServiceSelector:
+                    group: postgresql.baiju.dev
+                    version: v1alpha1
+                    kind: Database
+                    resourceRef: db-demo-knative
+                customEnvVar:
+                    - name: JDBC_URL
+                    value: 'jdbc:postgresql://{{ .status.dbConnectionIP }}:{{ .status.dbConnectionPort }}/{{ .status.dbName }}'
+                    - name: DB_USER
+                    value: '{{ index .status.dbConfigMap "db.username" }}'
+                    - name: DB_PASSWORD
+                    value: '{{ index .status.dbConfigMap "db.password" }}'
+            """
+        Then application should be re-deployed
+        And application should be connected to the DB "db-demo-knative"
+        And "{.status.conditions[*].status}" of Service Binding Request should be changed to "True"
