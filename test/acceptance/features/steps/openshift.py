@@ -42,19 +42,20 @@ apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
     name: {name}
+    namespace: {namespace}
 '''
         self.build_config_template = '''
 ---
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
-  name: knative-app
-  namespace: test-namespace-a
+  name: {name}
+  namespace: {namespace}
 spec:
   source:
     git:
       ref: master
-      uri: https://github.com/sbose78/using-spring-data-jpa-quarkus
+      uri: {application_source}
     type: Git
   strategy:
     sourceStrategy:
@@ -66,9 +67,22 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: knative-app:latest
+      name: {name}:latest
   triggers:
     - type: ConfigChange
+'''
+        self.service_template = '''
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: {name}
+  namespace: {namespace}
+spec:
+  template:
+    spec:
+      containers:
+        - image: {image_repository}
 '''
 
     def get_pod_lst(self, namespace):
@@ -159,8 +173,6 @@ spec:
         operator_subscription = self.operator_subscription_yaml_template.format(
             name=package_name, operator_source_name=operator_source_name,
             channel=channel, csv_version=self.get_current_csv(package_name, operator_source_name, channel))
-        import pdb
-        pdb.set_trace()
         return self.oc_apply(operator_subscription)
 
     def wait_for_package_manifest(self, package_name, operator_source_name, operator_channel, interval=5, timeout=60):
@@ -214,7 +226,7 @@ spec:
         return None
 
     def create_image_stream(self, name, registry_namespace):
-        image_stream = self.image_stream_template.format(name=name)
+        image_stream = self.image_stream_template.format(name=name, namespace=registry_namespace)
         return self.oc_apply(image_stream)
 
     def get_docker_image_repository(self, name, namespace):
@@ -222,6 +234,11 @@ spec:
         exit_code | should.be_equal_to(0)
         return output
 
-    def create_build_config(self, name, application_source, image_repository):
-        build_config_yaml = self.build_config_template.format(name=name, application_source=application_source, image_repository=image_repository)
+    def create_build_config(self, name, namespace, application_source):
+        build_config_yaml = self.build_config_template.format(name=name, namespace=namespace, application_source=application_source)
         return self.oc_apply(build_config_yaml)
+
+    def create_knative_service(self, name, namespace):
+        image_repository = self.get_docker_image_repository(name, namespace)
+        knative_service_yaml = self.service_template.format(name=name, namespace=namespace, image_repository=image_repository)
+        return self.oc_apply(knative_service_yaml)

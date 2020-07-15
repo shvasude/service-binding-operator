@@ -61,7 +61,7 @@ metadata:
 
     def install_as_knative_serving(self):
         serving_output = self.openshift.oc_apply(self.serving_template)
-        for pattern in [f'namespace/{self.knative_serving}\screated', f'knativeserving.serving.knative.dev/{self.knative_serving}\screated']:
+        for pattern in [f'namespace/{self.knative_serving}\\screated', f'knativeserving.serving.knative.dev/{self.knative_serving}\\screated']:
             if not re.search(pattern, serving_output):
                 return False
         return True

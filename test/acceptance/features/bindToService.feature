@@ -222,7 +222,7 @@ Feature: Bind an application to a service
         * Quarkus s2i builder image is present
         * Knative serving is running
         * DB "db-demo-knative" is running
-        * Imported Quarkus application "knative-app" is running as Knative service'
+        * Imported Quarkus application "knative-app" is running as Knative service
         When Service Binding Request is applied to connect the database and the application
             """
             ---
@@ -251,4 +251,4 @@ Feature: Bind an application to a service
             """
         Then application should be re-deployed
         And application should be connected to the DB "db-demo-knative"
-        And "{.status.conditions[*].status}" of Service Binding Request should be changed to "True"
+# * "{.status.conditions[*].status}" of Service Binding Request should be changed to "True"

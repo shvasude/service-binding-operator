@@ -226,16 +226,21 @@ def given_knative_serving_object_is_present(context):
     """
     serverless_operator = context.serverless_operator
     if not serverless_operator.is_knative_serving_present():
-        print("knative service is not present, trying to create knative service namespace")
+        print("knative service is not present, create knative service namespace")
         serverless_operator.install_as_knative_serving() | should.be_truthy.desc("knative service is created")
         serverless_operator.is_knative_serving_present() | should.be_truthy.desc("knative service is present")
     print("knative service is present!!!")
 
 
-@given(u'Imported Quarkus application "{application_name}" is running  as Knative service')
+# STEP
+imported_quarkus_app_is_running_step = u'Imported Quarkus application "{application_name}" is running as Knative service'
+
+
+@given(imported_quarkus_app_is_running_step)
+@when(imported_quarkus_app_is_running_step)
 def given_quarkus_application_is_running_as_knative_service(context, application_name):
-    context.namespace | should_not.be_none.desc("Namespace set in context")
-    quarkus_application = QuarkusApplication()
+    namespace = context.namespace
+    quarkus_application = QuarkusApplication(application_name, namespace.name)
 
     if not quarkus_application.is_running_as_knative_service():
         print("application is not running, trying to import it")

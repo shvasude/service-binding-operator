@@ -35,16 +35,18 @@ class BuilderImage(object):
 
     def import_and_patch(self):
         cmd_import = f"oc import-image quay.io/quarkus/{self.image}:{self.tag} -n {self.namespace} --confirm"
+        print(f'===> Import CMD: {cmd_import}')
         (import_output, exit_code) = self.cmd.run(cmd_import)
         if exit_code != 0:
             return False
-        if re.search(f'.*{self.image}\simported', import_output) is None:
+        if re.search(f'.*{self.image}\\simported', import_output) is None:
             return False
         spec = '{"spec": {"tags": [{"name" : "{self.tag}", "annotations": {"tags": "builder"}}]}}'
         cmd_patch = f'oc patch is {self.image} -n {self.namespace} -p \'{spec}\''
+        print(f'===> Patch CMD: {cmd_patch}')
         (patch_output, exit_code) = self.cmd.run(cmd_patch)
         if exit_code != 0:
             return False
-        if re.search(f'.*{self.image}\spatched', patch_output) is None:
+        if re.search(f'.*{self.image}\\spatched', patch_output) is None:
             return False
         return True
